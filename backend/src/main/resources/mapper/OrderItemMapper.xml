@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.OrderItemMapper">
+
+    <sql id="orderItemColumns">
+        id, order_id as orderId, product_id as productId, merchant_id as merchantId,
+        product_name as productName, product_image as productImage, product_price as productPrice,
+        quantity, subtotal, specs, create_time as createTime
+    </sql>
+
+    <insert id="insert" parameterType="com.mall.module.order.entity.OrderItem">
+        INSERT INTO order_item (order_id, product_id, merchant_id, product_name, product_image, product_price, quantity, subtotal, specs, create_time)
+        VALUES (#{orderId}, #{productId}, #{merchantId}, #{productName}, #{productImage}, #{productPrice}, #{quantity}, #{subtotal}, #{specs}, #{createTime})
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO order_item (order_id, product_id, merchant_id, product_name, product_image, product_price, quantity, subtotal, specs, create_time)
+        VALUES
+        <foreach collection="items" item="item" separator=",">
+            (#{item.orderId}, #{item.productId}, #{item.merchantId}, #{item.productName}, #{item.productImage}, #{item.productPrice}, #{item.quantity}, #{item.subtotal}, #{item.specs}, #{item.createTime})
+        </foreach>
+    </insert>
+
+    <delete id="deleteById" parameterType="Integer">
+        DELETE FROM order_item WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByOrderId" parameterType="Integer">
+        DELETE FROM order_item WHERE order_id = #{orderId}
+    </delete>
+
+    <select id="selectById" parameterType="Integer" resultType="com.mall.module.order.entity.OrderItem">
+        SELECT <include refid="orderItemColumns"/> FROM order_item WHERE id = #{id}
+    </select>
+
+    <select id="selectByOrderId" parameterType="Integer" resultType="com.mall.module.order.entity.OrderItem">
+        SELECT oi.id, oi.order_id as orderId, oi.product_id as productId, oi.merchant_id as merchantId,
+               oi.product_name as productName, oi.product_image as productImage, oi.product_price as productPrice,
+               oi.quantity, oi.subtotal, oi.specs, oi.create_time as createTime,
+               p.cover_img as productImg, m.shop_name as merchantName, b.name as brandName
+        FROM order_item oi
+        LEFT JOIN product p ON oi.product_id = p.id
+        LEFT JOIN merchant m ON oi.merchant_id = m.id
+        LEFT JOIN brand b ON p.brand_id = b.id
+        WHERE oi.order_id = #{orderId}
+    </select>
+
+    <select id="selectByMerchantId" parameterType="Integer" resultType="com.mall.module.order.entity.OrderItem">
+        SELECT <include refid="orderItemColumns"/> FROM order_item WHERE merchant_id = #{merchantId}
+    </select>
+
+    <select id="countByOrderId" parameterType="Integer" resultType="Integer">
+        SELECT COUNT(*) FROM order_item WHERE order_id = #{orderId}
+    </select>
+</mapper>

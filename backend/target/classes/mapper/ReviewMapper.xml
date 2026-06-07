@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReviewMapper">
+
+    <resultMap id="reviewResultMap" type="com.mall.module.product.entity.Review">
+        <id column="id" property="id"/>
+        <result column="order_item_id" property="orderItemId"/>
+        <result column="product_id" property="productId"/>
+        <result column="user_id" property="userId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="content" property="content"/>
+        <result column="rating" property="rating"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="has_append" property="hasAppend"/>
+        <result column="is_anonymous" property="isAnonymous"/>
+        <result column="is_top" property="isTop"/>
+        <result column="top_time" property="topTime"/>
+        <result column="merchant_reply" property="merchantReply"/>
+        <result column="reply_time" property="replyTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectByProductId" resultMap="reviewResultMap">
+        SELECT r.* FROM review r
+        <where>
+            r.product_id = #{productId}
+            <if test="rating != null">
+                AND r.rating = #{rating}
+            </if>
+            <if test="hasImage != null and hasImage == 1">
+                AND EXISTS (SELECT 1 FROM review_image ri WHERE ri.review_id = r.id)
+            </if>
+        </where>
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByProductId" resultType="int">
+        SELECT COUNT(*) FROM review WHERE product_id = #{productId}
+    </select>
+
+    <select id="countByProductIdFiltered" resultType="int">
+        SELECT COUNT(*) FROM review
+        WHERE product_id = #{productId}
+        <if test="rating != null and rating != 0">
+            AND rating = #{rating}
+        </if>
+        <if test="hasImage != null and hasImage == 1">
+            AND id IN (SELECT DISTINCT review_id FROM review_image)
+        </if>
+    </select>
+
+    <select id="countByProductIdAndRating" resultType="int">
+        SELECT COUNT(*) FROM review WHERE product_id = #{productId}
+        <if test="rating != null">
+            AND rating = #{rating}
+        </if>
+    </select>
+
+    <select id="countWithImage" resultType="int">
+        SELECT COUNT(*) FROM review r WHERE r.product_id = #{productId}
+        AND EXISTS (SELECT 1 FROM review_image ri WHERE ri.review_id = r.id)
+    </select>
+
+    <!-- 优化：一次查询获取所有评价统计数据 -->
+    <select id="selectReviewStats" resultType="map">
+        SELECT
+            COUNT(*) as total,
+            IFNULL(AVG(rating), 0) as avgRating,
+            SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as fiveStar,
+            SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as fourStar,
+            SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as threeStar,
+            SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as twoStar,
+            SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as oneStar,
+            (SELECT COUNT(*) FROM review_image ri WHERE ri.review_id IN (SELECT id FROM review WHERE product_id = #{productId})) as hasImageCount
+        FROM review
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="avgRating" resultType="double">
+        SELECT IFNULL(AVG(rating), 0) FROM review WHERE product_id = #{productId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review (order_item_id, product_id, user_id, merchant_id, content, rating, like_count, has_append, is_anonymous, create_time)
+        VALUES (#{orderItemId}, #{productId}, #{userId}, #{merchantId}, #{content}, #{rating}, #{likeCount}, #{hasAppend}, #{isAnonymous}, #{createTime})
+    </insert>
+
+    <update id="updateLikeCount">
+        UPDATE review SET like_count = like_count + 1 WHERE id = #{id}
+    </update>
+
+    <select id="existsByOrderItemId" resultType="int">
+        SELECT COUNT(*) FROM review WHERE order_item_id = #{orderItemId}
+    </select>
+
+    <select id="countByProductIdAndUserId" resultType="int">
+        SELECT COUNT(*) FROM review WHERE product_id = #{productId} AND user_id = #{userId}
+    </select>
+
+    <select id="selectByOrderItemId" resultMap="reviewResultMap">
+        SELECT * FROM review WHERE order_item_id = #{orderItemId} LIMIT 1
+    </select>
+
+    <select id="selectByUserId" resultMap="reviewResultMap">
+        SELECT * FROM review WHERE user_id = #{userId} ORDER BY create_time DESC
+    </select>
+
+    <update id="updateHasAppend">
+        UPDATE review SET has_append = 1 WHERE id = #{id}
+    </update>
+
+    <select id="selectByMerchantId" resultMap="reviewResultMap">
+        SELECT * FROM review WHERE merchant_id = #{merchantId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectMerchantReviewList" resultType="map">
+        SELECT 
+            r.id,
+            r.order_item_id as orderItemId,
+            r.product_id as productId,
+            r.user_id as userId,
+            r.merchant_id as merchantId,
+            r.content,
+            r.rating,
+            r.like_count as likeCount,
+            r.has_append as hasAppend,
+            r.is_anonymous as isAnonymous,
+            r.is_top as isTop,
+            r.create_time as createTime,
+            p.name as productName,
+            p.cover_img as productImage,
+            rr.id as replyId,
+            rr.content as replyContent,
+            rr.create_time as replyTime,
+            CASE WHEN rr.id IS NOT NULL THEN 1 ELSE 0 END as hasReply
+        FROM review r
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN review_reply rr ON r.id = rr.review_id
+        WHERE r.merchant_id = #{merchantId}
+        <if test="rating != null and rating != 0">
+            <choose>
+                <when test="rating == 1">
+                    AND r.rating IN (4, 5)
+                </when>
+                <when test="rating == 2">
+                    AND r.rating = 3
+                </when>
+                <when test="rating == 3">
+                    AND r.rating IN (1, 2)
+                </when>
+            </choose>
+        </if>
+        <if test="hasReply != null">
+            <choose>
+                <when test="hasReply == 1">
+                    AND rr.id IS NOT NULL
+                </when>
+                <when test="hasReply == 2">
+                    AND rr.id IS NULL
+                </when>
+            </choose>
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND r.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND r.create_time &lt;= #{endTime}
+        </if>
+        ORDER BY r.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countMerchantReviewList" resultType="int">
+        SELECT COUNT(DISTINCT r.id)
+        FROM review r
+        LEFT JOIN review_reply rr ON r.id = rr.review_id
+        WHERE r.merchant_id = #{merchantId}
+        <if test="rating != null and rating != 0">
+            <choose>
+                <when test="rating == 1">
+                    AND r.rating IN (4, 5)
+                </when>
+                <when test="rating == 2">
+                    AND r.rating = 3
+                </when>
+                <when test="rating == 3">
+                    AND r.rating IN (1, 2)
+                </when>
+            </choose>
+        </if>
+        <if test="hasReply != null">
+            <choose>
+                <when test="hasReply == 1">
+                    AND rr.id IS NOT NULL
+                </when>
+                <when test="hasReply == 2">
+                    AND rr.id IS NULL
+                </when>
+            </choose>
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND r.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND r.create_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="selectMerchantReviewStats" resultType="map">
+        SELECT
+            COUNT(*) as totalReviews,
+            SUM(CASE WHEN r.rating IN (4, 5) THEN 1 ELSE 0 END) as goodReviews,
+            SUM(CASE WHEN r.rating = 3 THEN 1 ELSE 0 END) as mediumReviews,
+            SUM(CASE WHEN r.rating IN (1, 2) THEN 1 ELSE 0 END) as badReviews,
+            CASE WHEN COUNT(*) = 0 THEN 0 ELSE ROUND(SUM(CASE WHEN r.rating IN (4, 5) THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) END as goodRate
+        FROM review r
+        WHERE r.merchant_id = #{merchantId}
+    </select>
+
+    <select id="selectByIdAndMerchantId" resultMap="reviewResultMap">
+        SELECT * FROM review WHERE id = #{id} AND merchant_id = #{merchantId} LIMIT 1
+    </select>
+
+    <select id="selectById" resultMap="reviewResultMap">
+        SELECT * FROM review WHERE id = #{id} LIMIT 1
+    </select>
+
+    <update id="updateTopStatus">
+        UPDATE review 
+        SET is_top = #{isTop}, 
+            top_time = CASE WHEN #{isTop} = 1 THEN NOW() ELSE NULL END
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateMerchantReply">
+        UPDATE review 
+        SET merchant_reply = #{merchantReply}, 
+            reply_time = #{replyTime}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectAdvancedReviewStats" resultType="map">
+        SELECT 
+            COUNT(*) as totalReviews,
+            SUM(CASE WHEN rating IN (4, 5) THEN 1 ELSE 0 END) as goodReviews,
+            SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as mediumReviews,
+            SUM(CASE WHEN rating IN (1, 2) THEN 1 ELSE 0 END) as badReviews,
+            CASE WHEN COUNT(*) = 0 THEN 0 ELSE ROUND(SUM(CASE WHEN rating IN (4, 5) THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) END as goodRate,
+            SUM(CASE WHEN EXISTS (SELECT 1 FROM review_image WHERE review_image.review_id = review.id) THEN 1 ELSE 0 END) as imageReviews,
+            SUM(CASE WHEN is_top = 1 THEN 1 ELSE 0 END) as topReviews
+        FROM review
+        WHERE merchant_id = #{merchantId}
+    </select>
+
+    <select id="selectReviewTrend" resultType="map">
+        SELECT 
+            DATE(create_time) as date,
+            COUNT(*) as count,
+            SUM(CASE WHEN rating IN (4, 5) THEN 1 ELSE 0 END) as goodCount,
+            SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as mediumCount,
+            SUM(CASE WHEN rating IN (1, 2) THEN 1 ELSE 0 END) as badCount
+        FROM review
+        WHERE merchant_id = #{merchantId}
+            AND create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY DATE(create_time)
+        ORDER BY DATE(create_time) ASC
+    </select>
+
+</mapper>

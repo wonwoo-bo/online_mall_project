@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.UserCouponMapper">
+
+    <insert id="insert" parameterType="com.mall.module.product.entity.UserCoupon">
+        INSERT INTO user_coupon (user_id, coupon_id, status, order_id, receive_time, use_time, expire_time)
+        VALUES (#{userId}, #{couponId}, #{status}, #{orderId}, #{receiveTime}, #{useTime}, #{expireTime})
+    </insert>
+
+    <update id="updateById" parameterType="com.mall.module.product.entity.UserCoupon">
+        UPDATE user_coupon 
+        SET status = #{status}, order_id = #{orderId}, use_time = #{useTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM user_coupon WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" resultType="com.mall.module.product.entity.UserCoupon">
+        SELECT * FROM user_coupon WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserId" resultType="com.mall.module.product.entity.UserCoupon">
+        SELECT * FROM user_coupon WHERE user_id = #{userId} ORDER BY receive_time DESC
+    </select>
+
+    <select id="selectAvailableByUserId" resultType="com.mall.module.product.entity.UserCoupon">
+        SELECT * FROM user_coupon WHERE user_id = #{userId} AND status = 0 AND expire_time > NOW() ORDER BY expire_time ASC
+    </select>
+
+    <select id="countReceived" resultType="Integer">
+        SELECT COUNT(*) FROM user_coupon WHERE user_id = #{userId} AND coupon_id = #{couponId}
+    </select>
+
+    <select id="selectByOrderId" resultType="com.mall.module.product.entity.UserCoupon">
+        SELECT * FROM user_coupon WHERE order_id = #{orderId}
+    </select>
+
+</mapper>

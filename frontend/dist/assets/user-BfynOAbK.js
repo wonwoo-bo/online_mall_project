@@ -1,0 +1,1 @@
+import{Nt as e,a as t,ct as n,i as r,o as i,r as a}from"./index-DTKhtBZL.js";var o=n(`user`,()=>{let n=e(a()),o=e(r()),s=e(t()),c=e(!!n.value);function l(e){n.value=e.token,o.value=e.userId,s.value=e.username,c.value=!0}function u(){i(),n.value=null,o.value=null,s.value=null,c.value=!1}return{token:n,userId:o,username:s,isLoggedIn:c,setUserInfo:l,logout:u}});export{o as t};

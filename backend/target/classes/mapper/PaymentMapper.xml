@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.PaymentMapper">
+
+    <sql id="paymentColumns">
+        id, order_id as orderId, pay_method as payMethod,
+        amount, status, pay_time as payTime, refund_amount as refundAmount,
+        refund_time as refundTime, create_time as createTime, update_time as updateTime
+    </sql>
+
+    <insert id="insert" parameterType="com.mall.module.order.entity.Payment">
+        INSERT INTO payment (order_id, pay_method, amount, status, pay_time, refund_amount, refund_time, create_time, update_time)
+        VALUES (#{orderId}, #{payMethod}, #{amount}, #{status}, #{payTime}, #{refundAmount}, #{refundTime}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="com.mall.module.order.entity.Payment">
+        UPDATE payment SET
+        <if test="payMethod != null">pay_method = #{payMethod},</if>
+        <if test="status != null">status = #{status},</if>
+        <if test="payTime != null">pay_time = #{payTime},</if>
+        <if test="refundAmount != null">refund_amount = #{refundAmount},</if>
+        <if test="refundTime != null">refund_time = #{refundTime},</if>
+        update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="Integer">
+        DELETE FROM payment WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" parameterType="Integer" resultType="com.mall.module.order.entity.Payment">
+        SELECT <include refid="paymentColumns"/> FROM payment WHERE id = #{id}
+    </select>
+
+    <select id="selectByOrderId" parameterType="Integer" resultType="com.mall.module.order.entity.Payment">
+        SELECT <include refid="paymentColumns"/> FROM payment WHERE order_id = #{orderId}
+    </select>
+
+    <select id="selectByStatus" parameterType="Integer" resultType="com.mall.module.order.entity.Payment">
+        SELECT <include refid="paymentColumns"/> FROM payment WHERE status = #{status} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByPayMethod" parameterType="String" resultType="com.mall.module.order.entity.Payment">
+        SELECT <include refid="paymentColumns"/> FROM payment WHERE pay_method = #{payMethod} ORDER BY create_time DESC
+    </select>
+
+    <select id="countByStatus" parameterType="Integer" resultType="Integer">
+        SELECT COUNT(*) FROM payment WHERE status = #{status}
+    </select>
+</mapper>

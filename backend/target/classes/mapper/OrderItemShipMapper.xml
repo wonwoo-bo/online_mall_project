@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.OrderItemShipMapper">
+
+    <insert id="upsert">
+        INSERT INTO order_item_ship (order_id, express_company, tracking_no, create_time, update_time)
+        VALUES (#{orderId}, #{expressCompany}, #{trackingNo}, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE
+            express_company = #{expressCompany},
+            tracking_no = #{trackingNo},
+            update_time = NOW()
+    </insert>
+
+    <select id="selectByOrderId" resultType="java.util.Map">
+        SELECT order_id as orderId, express_company as expressCompany,
+               tracking_no as trackingNo, create_time as createTime, update_time as updateTime
+        FROM order_item_ship
+        WHERE order_id = #{orderId}
+    </select>
+
+</mapper>

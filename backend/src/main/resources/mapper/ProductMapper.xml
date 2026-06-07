@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ProductMapper">
+
+    <resultMap id="productResultMap" type="com.mall.module.product.entity.Product">
+        <id column="id" property="id"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="brand_id" property="brandId"/>
+        <result column="name" property="name"/>
+        <result column="category" property="category"/>
+        <result column="price" property="price"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="cost_price" property="costPrice"/>
+        <result column="stock" property="stock"/>
+        <result column="weight" property="weight"/>
+        <result column="unit" property="unit"/>
+        <result column="cover_img" property="coverImg"/>
+        <result column="main_image" property="mainImage"/>
+        <result column="images" property="images"/>
+        <result column="sku_code" property="skuCode"/>
+        <result column="bar_code" property="barCode"/>
+        <result column="product_sn" property="productSn"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="is_recommended" property="isRecommended"/>
+        <result column="is_new" property="isNew"/>
+        <result column="free_shipping" property="freeShipping"/>
+        <result column="shipping_fee" property="shippingFee"/>
+        <result column="min_stock" property="minStock"/>
+        <result column="views" property="views"/>
+        <result column="sell_count" property="sellCount"/>
+        <result column="actual_sales" property="actualSales"/>
+        <result column="sales" property="sales"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="delete_time" property="deleteTime"/>
+        <result column="review_count" property="reviewCount"/>
+        <result column="category_name" property="categoryName"/>
+        <result column="brand_name" property="brandName"/>
+    </resultMap>
+
+    <sql id="productCondition">
+        <where>
+            status = 1
+            <if test="categoryId != null">
+                AND category_id IN (
+                    SELECT id FROM category WHERE id = #{categoryId} OR parent_id = #{categoryId}
+                )
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%')
+                    OR category LIKE CONCAT('%', #{keyword}, '%')
+                    OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="minPrice != null">
+                AND price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND price &lt;= #{maxPrice}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="productSort">
+        <choose>
+            <when test="sort == 'sales'">
+                ORDER BY sales DESC
+            </when>
+            <when test="sort == 'price_asc'">
+                ORDER BY price ASC
+            </when>
+            <when test="sort == 'price_desc'">
+                ORDER BY price DESC
+            </when>
+            <when test="sort == 'new'">
+                ORDER BY is_new DESC, create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+    </sql>
+
+    <select id="selectProductList" resultMap="productResultMap">
+        SELECT p.*,
+               (SELECT COUNT(*) FROM review WHERE product_id = p.id) AS review_count
+        FROM product p
+        <include refid="productCondition"/>
+        <include refid="productSort"/>
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countProductList" resultType="int">
+        SELECT COUNT(*) FROM product
+        <include refid="productCondition"/>
+    </select>
+
+    <select id="selectById" resultMap="productResultMap">
+        SELECT * FROM product WHERE id = #{id}
+    </select>
+
+    <update id="incrementViews">
+        UPDATE product SET views = COALESCE(views, 0) + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementSales">
+        UPDATE product SET sales = COALESCE(sales, 0) + #{quantity} WHERE id = #{id}
+    </update>
+
+    <select id="selectRecommended" resultMap="productResultMap">
+        SELECT p.*,
+               (SELECT COUNT(*) FROM review WHERE product_id = p.id) AS review_count
+        FROM product p
+        WHERE p.is_recommended = 1 AND p.status = 1
+        ORDER BY p.create_time DESC LIMIT #{limit}
+    </select>
+
+    <select id="countByMerchantId" resultType="int">
+        SELECT COUNT(*) FROM product WHERE merchant_id = #{merchantId} AND status = 1
+    </select>
+
+    <select id="selectByMerchantId" resultMap="productResultMap">
+        SELECT p.*,
+               c.name as category_name,
+               b.name as brand_name,
+               (SELECT COUNT(*) FROM review WHERE product_id = p.id) AS review_count
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN brand b ON p.brand_id = b.id
+        WHERE p.merchant_id = #{merchantId}
+        <if test="keyword != null and keyword != ''">
+            AND p.name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="brandId != null">
+            AND p.brand_id = #{brandId}
+        </if>
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        <if test="minPrice != null">
+            AND p.price &gt;= #{minPrice}
+        </if>
+        <if test="maxPrice != null">
+            AND p.price &lt;= #{maxPrice}
+        </if>
+        ORDER BY p.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByMerchantIdWithKeyword" resultType="int">
+        SELECT COUNT(*) FROM product p
+        WHERE p.merchant_id = #{merchantId}
+        <if test="keyword != null and keyword != ''">
+            AND p.name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="brandId != null">
+            AND p.brand_id = #{brandId}
+        </if>
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product (merchant_id, category_id, brand_id, name, category, price, original_price,
+            stock, views, cover_img, main_image, images, description, status, is_recommended, is_new,
+            sales, create_time, update_time)
+        VALUES (#{merchantId}, #{categoryId}, #{brandId}, #{name}, #{category}, #{price}, #{originalPrice},
+            #{stock}, #{views}, #{coverImg}, #{mainImage}, #{images}, #{description}, #{status}, #{isRecommended},
+            #{isNew}, #{sales}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE product SET
+        <trim suffixOverrides=",">
+            <if test="merchantId != null">merchant_id = #{merchantId},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="brandId != null">brand_id = #{brandId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="costPrice != null">cost_price = #{costPrice},</if>
+            <if test="stock != null">stock = #{stock},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="coverImg != null">cover_img = #{coverImg},</if>
+            <if test="mainImage != null">main_image = #{mainImage},</if>
+            <if test="images != null">images = #{images},</if>
+            <if test="skuCode != null">sku_code = #{skuCode},</if>
+            <if test="barCode != null">bar_code = #{barCode},</if>
+            <if test="productSn != null">product_sn = #{productSn},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isRecommended != null">is_recommended = #{isRecommended},</if>
+            <if test="isNew != null">is_new = #{isNew},</if>
+            <if test="freeShipping != null">free_shipping = #{freeShipping},</if>
+            <if test="shippingFee != null">shipping_fee = #{shippingFee},</if>
+            <if test="minStock != null">min_stock = #{minStock},</if>
+            update_time = NOW()
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM product WHERE id = #{id}
+    </delete>
+
+    <update id="moveToRecycle">
+        UPDATE product SET status = -1, delete_time = NOW(), update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE product SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="selectRecycleList" resultType="java.util.Map">
+        SELECT id, name, cover_img as coverImg, price, stock, delete_time as deleteTime
+        FROM product
+        WHERE merchant_id = #{merchantId}
+          AND status = -1
+        ORDER BY delete_time DESC
+    </select>
+
+    <update id="restoreProduct">
+        UPDATE product SET status = 1, delete_time = NULL, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="forceDeleteProduct">
+        DELETE FROM product WHERE id = #{id}
+    </delete>
+
+    <update id="updateStock">
+        UPDATE product SET stock = stock + #{quantity}, update_time = NOW()
+        WHERE id = #{id} AND stock + #{quantity} >= 0
+    </update>
+
+    <!-- ========== 商品中心管理模块新增SQL ========== -->
+
+    <!-- 根据商家ID和商品ID查询商品（带数据隔离校验） -->
+    <select id="selectByIdAndMerchant" resultMap="productResultMap">
+        SELECT * FROM product WHERE id = #{id} AND merchant_id = #{merchantId}
+    </select>
+
+    <!-- 更新商品价格 -->
+    <update id="updatePrice">
+        UPDATE product SET
+            <trim suffixOverrides=",">
+                <if test="price != null">price = #{price},</if>
+                <if test="originalPrice != null">original_price = #{originalPrice},</if>
+                <if test="costPrice != null">cost_price = #{costPrice},</if>
+                update_time = NOW()
+            </trim>
+        WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <!-- 手动调整库存 -->
+    <update id="adjustStock">
+        UPDATE product SET
+            stock = stock + #{quantity},
+            update_time = NOW()
+        WHERE id = #{id} AND merchant_id = #{merchantId}
+          AND (stock + #{quantity}) &gt;= 0
+    </update>
+
+    <!-- 检查商品是否有交易记录（订单/售后） -->
+    <select id="checkProductHasTransaction" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT id FROM order_item WHERE product_id = #{productId} LIMIT 1
+            UNION ALL
+            SELECT id FROM return_request WHERE product_id = #{productId} LIMIT 1
+        ) AS t
+    </select>
+
+    <!-- 批量更新商品状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE product SET status = #{status}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND merchant_id = #{merchantId}
+    </update>
+
+    <!-- 获取商品数量（按状态） -->
+    <select id="countByMerchantIdAndStatus" resultType="int">
+        SELECT COUNT(*) FROM product WHERE merchant_id = #{merchantId}
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <!-- 锁定库存（下单时调用） -->
+    <update id="lockStock">
+        UPDATE product SET
+            stock = stock - #{quantity},
+            update_time = NOW()
+        WHERE id = #{id}
+          AND stock &gt;= #{quantity}
+    </update>
+
+    <!-- 扣减库存（付款时调用） -->
+    <update id="deductStock">
+        UPDATE product SET
+            stock = stock - #{quantity},
+            update_time = NOW()
+        WHERE id = #{id}
+          AND stock &gt;= #{quantity}
+    </update>
+
+    <!-- 回滚库存（取消订单/退款时调用） -->
+    <update id="rollbackStock">
+        UPDATE product SET
+            stock = stock + #{quantity},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 获取商品库存 -->
+    <select id="getProductStock" resultType="int">
+        SELECT stock FROM product WHERE id = #{id}
+    </select>
+
+    <!-- 根据商家ID获取所有商品（不带分页和筛选） -->
+    <select id="selectAllByMerchantId" resultMap="productResultMap">
+        SELECT * FROM product WHERE merchant_id = #{merchantId}
+    </select>
+
+</mapper>

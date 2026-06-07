@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.TrackingLogMapper">
+
+    <insert id="insert" parameterType="com.mall.module.order.entity.TrackingLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tracking_log (order_id, tracking_no, location, status, description, create_time, sort_order)
+        VALUES (#{orderId}, #{trackingNo}, #{location}, #{status}, #{description}, #{createTime}, #{sortOrder})
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO tracking_log (order_id, tracking_no, location, status, description, create_time, sort_order)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.orderId}, #{item.trackingNo}, #{item.location}, #{item.status}, #{item.description}, #{item.createTime}, #{item.sortOrder})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByOrderId" parameterType="Integer">
+        DELETE FROM tracking_log WHERE order_id = #{orderId}
+    </delete>
+
+    <select id="selectByOrderId" parameterType="Integer" resultType="com.mall.module.order.entity.TrackingLog">
+        SELECT id, order_id as orderId, tracking_no as trackingNo, location, status, description,
+               create_time as createTime, sort_order as sortOrder
+        FROM tracking_log WHERE order_id = #{orderId} ORDER BY sort_order DESC
+    </select>
+
+    <select id="selectByTrackingNo" parameterType="String" resultType="com.mall.module.order.entity.TrackingLog">
+        SELECT id, order_id as orderId, tracking_no as trackingNo, location, status, description,
+               create_time as createTime, sort_order as sortOrder
+        FROM tracking_log WHERE tracking_no = #{trackingNo} ORDER BY sort_order DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.OrderMapper">
+
+    <sql id="orderColumns">
+        id, order_no as orderNo, user_id as userId,
+        total_amount as totalAmount, status, shipping_address as shippingAddress,
+        receiver_name as receiverName, receiver_phone as receiverPhone, remark,
+        group_order_no as groupOrderNo,
+        create_time as createTime, pay_time as payTime,
+        ship_time as shipTime, receive_time as receiveTime
+    </sql>
+
+    <insert id="insert" parameterType="com.mall.module.order.entity.Order" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `order` (order_no, user_id, total_amount, status, shipping_address, receiver_name, receiver_phone, remark, group_order_no, create_time, pay_time, ship_time, receive_time)
+        VALUES (#{orderNo}, #{userId}, #{totalAmount}, #{status}, #{shippingAddress}, #{receiverName}, #{receiverPhone}, #{remark}, #{groupOrderNo}, #{createTime}, #{payTime}, #{shipTime}, #{receiveTime})
+    </insert>
+
+    <update id="update" parameterType="com.mall.module.order.entity.Order">
+        UPDATE `order` SET
+        <trim suffixOverrides=",">
+            <if test="shippingAddress != null">shipping_address = #{shippingAddress},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="payTime != null">pay_time = #{payTime},</if>
+            <if test="shipTime != null">ship_time = #{shipTime},</if>
+            <if test="receiveTime != null">receive_time = #{receiveTime},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE `order` SET status = #{status} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="Integer">
+        DELETE FROM `order` WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" parameterType="Integer" resultType="com.mall.module.order.entity.Order">
+        SELECT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount,
+               CASE WHEN o.status = 5 AND (SELECT MAX(rr.status) FROM return_request rr WHERE rr.order_id = o.id) = 4 THEN 3 ELSE o.status END as status,
+               o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime,
+               o.express_company as expressCompany, o.tracking_no as trackingNo,
+               p.pay_method as payMethod
+        FROM `order` o
+        LEFT JOIN payment p ON o.id = p.order_id
+        WHERE o.id = #{id}
+    </select>
+
+    <select id="selectByOrderNo" parameterType="String" resultType="com.mall.module.order.entity.Order">
+        SELECT <include refid="orderColumns"/> FROM `order` WHERE order_no = #{orderNo}
+    </select>
+
+    <select id="selectByUserId" parameterType="Integer" resultType="com.mall.module.order.entity.Order">
+        SELECT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount,
+               CASE WHEN o.status = 5 AND (SELECT MAX(rr.status) FROM return_request rr WHERE rr.order_id = o.id) = 4 THEN 3 ELSE o.status END as status,
+               o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime,
+               o.express_company as expressCompany, o.tracking_no as trackingNo,
+               p.pay_method as payMethod
+        FROM `order` o
+        LEFT JOIN payment p ON o.id = p.order_id
+        WHERE o.user_id = #{userId}
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectByStatus" parameterType="Integer" resultType="com.mall.module.order.entity.Order">
+        SELECT <include refid="orderColumns"/> FROM `order` WHERE status = #{status} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByUserIdAndStatus" resultType="com.mall.module.order.entity.Order">
+        SELECT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount, o.status, o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime,
+               p.pay_method as payMethod
+        FROM `order` o
+        LEFT JOIN payment p ON o.id = p.order_id
+        WHERE o.user_id = #{userId} AND o.status = #{status}
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="countByMerchantId" resultType="int">
+        SELECT COUNT(DISTINCT o.id) 
+        FROM `order` o 
+        JOIN order_item oi ON o.id = oi.order_id 
+        WHERE oi.merchant_id = #{merchantId} AND o.status &lt;&gt; 4
+    </select>
+
+    <select id="sumAmountByMerchantAndTime" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(o.total_amount), 0) 
+        FROM `order` o 
+        JOIN order_item oi ON o.id = oi.order_id 
+        WHERE oi.merchant_id = #{merchantId} 
+          AND o.status &lt;&gt; 4
+        <if test="start != null">
+          AND o.create_time &gt;= #{start} 
+        </if>
+        <if test="end != null">
+          AND o.create_time &lt;= #{end}
+        </if>
+    </select>
+
+    <select id="selectPendingOrdersByMerchant" resultType="java.util.Map">
+        SELECT o.id, o.order_no as orderNo, o.total_amount as totalAmount, 
+               o.status, o.create_time as createTime
+        FROM `order` o 
+        JOIN order_item oi ON o.id = oi.order_id 
+        WHERE oi.merchant_id = #{merchantId} 
+          AND o.status IN (0, 1)
+        ORDER BY o.create_time DESC 
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectOrdersByMerchant" resultType="com.mall.module.order.entity.Order">
+        SELECT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount, o.status, o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime,
+               u.username as userName
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        LEFT JOIN user u ON o.user_id = u.id
+        WHERE oi.merchant_id = #{merchantId}
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="selectSalesStatisticsByMerchant" resultType="java.util.Map">
+        SELECT DATE(o.create_time) as date, 
+               COUNT(DISTINCT o.id) as orderCount,
+               COALESCE(SUM(o.total_amount), 0) as salesAmount
+        FROM `order` o 
+        JOIN order_item oi ON o.id = oi.order_id 
+        WHERE oi.merchant_id = #{merchantId}
+          AND o.create_time >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+          AND o.status = 1
+        GROUP BY DATE(o.create_time)
+        ORDER BY DATE(o.create_time) ASC
+    </select>
+
+    <select id="selectProductRankingByMerchant" resultType="java.util.Map">
+        SELECT oi.product_id as productId, 
+               oi.product_name as productName, 
+               COALESCE(SUM(oi.quantity), 0) as salesCount,
+               COALESCE(SUM(oi.subtotal), 0) as salesAmount,
+               COALESCE(SUM(oi.subtotal) / NULLIF(SUM(oi.quantity), 0), 0) as avgPrice
+        FROM order_item oi
+        WHERE oi.merchant_id = #{merchantId}
+        <if test="startTime != null">
+            AND oi.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND oi.create_time &lt;= #{endTime}
+        </if>
+        GROUP BY oi.product_id, oi.product_name
+        ORDER BY <choose>
+            <when test="sortType == 1">salesCount DESC</when>
+            <when test="sortType == 2">salesAmount DESC</when>
+            <otherwise>salesCount DESC</otherwise>
+        </choose>
+        LIMIT 20
+    </select>
+
+    <update id="updateGroupOrderNo">
+        UPDATE `order` SET group_order_no = #{groupOrderNo} WHERE id = #{id}
+    </update>
+
+    <!-- 商家订单分页查询（多条件搜索） -->
+    <select id="selectOrdersByMerchantPaged" resultType="com.mall.module.order.entity.Order">
+        SELECT DISTINCT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount, o.status, o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime,
+               u.username as userName
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        LEFT JOIN user u ON o.user_id = u.id
+        WHERE oi.merchant_id = #{merchantId}
+        <!-- 多状态筛选：支持逗号分隔的多个状态 -->
+        <if test="statusList != null and statusList.size() > 0">
+            AND o.status IN
+            <foreach collection="statusList" item="s" open="(" separator="," close=")">
+                #{s}
+            </foreach>
+        </if>
+        <!-- 关键词精准搜索：订单号/收货人/手机号 -->
+        <if test="keyword != null and keyword != ''">
+            AND (
+                o.order_no LIKE CONCAT('%', #{keyword}, '%')
+                OR o.receiver_name LIKE CONCAT('%', #{keyword}, '%')
+                OR o.receiver_phone LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <!-- 时间范围筛选 -->
+        <if test="startDate != null">
+            AND o.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND o.create_time &lt;= #{endDate}
+        </if>
+        ORDER BY o.create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 商家订单总数统计（多条件） -->
+    <select id="countOrdersByMerchantPaged" resultType="Integer">
+        SELECT COUNT(DISTINCT o.id)
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        WHERE oi.merchant_id = #{merchantId}
+        <if test="statusList != null and statusList.size() > 0">
+            AND o.status IN
+            <foreach collection="statusList" item="s" open="(" separator="," close=")">
+                #{s}
+            </foreach>
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (
+                o.order_no LIKE CONCAT('%', #{keyword}, '%')
+                OR o.receiver_name LIKE CONCAT('%', #{keyword}, '%')
+                OR o.receiver_phone LIKE CONCAT('%', #{keyword}, '%')
+            )
+        </if>
+        <if test="startDate != null">
+            AND o.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND o.create_time &lt;= #{endDate}
+        </if>
+    </select>
+
+    <!-- 更新订单备注 -->
+    <update id="updateRemark">
+        UPDATE `order` SET remark = #{remark} WHERE id = #{id}
+    </update>
+
+    <!-- 商家接单确认（待付款→待发货） -->
+    <update id="confirmOrderByMerchant">
+        UPDATE `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        SET o.status = 1,
+            pay_time = NOW()
+        WHERE o.id = #{id}
+          AND oi.merchant_id = #{merchantId}
+          AND o.status = 0
+    </update>
+
+    <!-- 商家手动关单（待付款/待发货状态均可关闭） -->
+    <update id="closeOrderByMerchant">
+        UPDATE `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        SET o.status = -1
+        WHERE o.id = #{id}
+          AND oi.merchant_id = #{merchantId}
+          AND o.status IN (0, 1)
+    </update>
+
+    <!-- 更新发货信息（物流公司+运单号） -->
+    <update id="updateShipInfo">
+        UPDATE `order` SET
+            status = 2,
+            express_company = #{expressCompany},
+            tracking_no = #{trackingNo},
+            ship_time = #{shipTime}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 保存物流信息（通过注解方式，实际由OrderItemShipMapper处理） -->
+
+    <!-- 检查订单是否属于该商家 -->
+    <select id="selectMerchantIdByOrderId" resultType="Integer">
+        SELECT oi.merchant_id
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        WHERE o.id = #{orderId}
+        LIMIT 1
+    </select>
+
+    <!-- 查询订单物流信息 -->
+    <select id="selectShipInfoByOrderId" resultType="java.util.Map">
+        SELECT o.id, o.order_no as orderNo, o.status, o.ship_time as shipTime,
+               oi.express_company as expressCompany, oi.tracking_no as trackingNo
+        FROM `order` o
+        LEFT JOIN order_item_ship oi ON o.id = oi.order_id
+        WHERE o.id = #{orderId}
+        LIMIT 1
+    </select>
+
+    <!-- 更新订单价格 -->
+    <update id="updateOrderPrice">
+        UPDATE `order` SET total_amount = #{totalAmount} WHERE id = #{id}
+    </update>
+
+    <!-- 查询超时未付款订单 -->
+    <select id="selectTimeoutPendingOrders" resultType="com.mall.module.order.entity.Order">
+        SELECT DISTINCT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount, o.status, o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        WHERE o.status = 0 AND o.create_time &lt; #{timeoutTime}
+    </select>
+
+    <!-- 恢复已关闭订单（取消自动关单） -->
+    <update id="reopenOrderByMerchant">
+        UPDATE `order` 
+        SET status = 0 
+        WHERE id = #{id} AND status = -1
+    </update>
+
+    <!-- 查询商家订单利润统计 -->
+    <select id="selectMerchantOrderProfit" resultType="java.util.Map">
+        SELECT o.id, o.order_no as orderNo, o.total_amount as totalAmount, 
+               o.status, o.create_time as createTime, oi.product_id as productId,
+               oi.product_name as productName, oi.product_price as productPrice,
+               oi.quantity as quantity
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        WHERE oi.merchant_id = #{merchantId}
+          AND o.status IN (2, 3)
+        <if test="startDate != null">
+            AND o.create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND o.create_time &lt;= #{endDate}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <!-- 查询商家订单（带标签信息和物流信息） -->
+    <select id="selectMerchantOrdersWithTags" resultType="java.util.Map">
+        SELECT o.id, o.order_no as orderNo, o.user_id as userId,
+               o.total_amount as totalAmount, o.status, o.shipping_address as shippingAddress,
+               o.receiver_name as receiverName, o.receiver_phone as receiverPhone, o.remark,
+               o.group_order_no as groupOrderNo,
+               o.create_time as createTime, o.pay_time as payTime,
+               o.ship_time as shipTime, o.receive_time as receiveTime,
+               u.username as userName,
+               os.express_company as expressCompany, os.tracking_no as trackingNo,
+               GROUP_CONCAT(DISTINCT ot.tag_name ORDER BY ot.create_time DESC) as tags,
+               GROUP_CONCAT(DISTINCT ot.tag_color ORDER BY ot.create_time DESC) as tagColors
+        FROM `order` o
+        JOIN order_item oi ON o.id = oi.order_id
+        LEFT JOIN user u ON o.user_id = u.id
+        LEFT JOIN order_tag ot ON o.id = ot.order_id
+        LEFT JOIN order_item_ship os ON o.id = os.order_id
+        WHERE oi.merchant_id = #{merchantId}
+        GROUP BY o.id
+        ORDER BY o.create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+</mapper>

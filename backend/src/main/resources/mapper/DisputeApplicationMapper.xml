@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.DisputeApplicationMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.product.entity.DisputeApplication">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="merchant_id" property="merchantId" jdbcType="INTEGER"/>
+        <result column="return_id" property="returnId" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="INTEGER"/>
+        <result column="reason" property="reason" jdbcType="VARCHAR"/>
+        <result column="evidence" property="evidence" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="platform_result" property="platformResult" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="findByMerchantId" resultMap="BaseResultMap">
+        SELECT * FROM dispute_application
+        WHERE merchant_id = #{merchantId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM dispute_application
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.mall.module.product.entity.DisputeApplication" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dispute_application (merchant_id, return_id, user_id, reason, evidence, status, platform_result, create_time, update_time)
+        VALUES (#{merchantId}, #{returnId}, #{userId}, #{reason}, #{evidence}, #{status}, #{platformResult}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.mall.module.product.entity.DisputeApplication">
+        UPDATE dispute_application
+        <set>
+            <if test="reason != null">reason = #{reason},</if>
+            <if test="evidence != null">evidence = #{evidence},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="platformResult != null">platform_result = #{platformResult},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM dispute_application WHERE id = #{id}
+    </delete>
+
+</mapper>

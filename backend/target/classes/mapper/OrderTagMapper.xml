@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.OrderTagMapper">
+
+    <insert id="insert" parameterType="com.mall.module.order.entity.OrderTag" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_tag (order_id, merchant_id, tag_name, tag_color, create_time)
+        VALUES (#{orderId}, #{merchantId}, #{tagName}, #{tagColor}, #{createTime})
+    </insert>
+
+    <delete id="deleteById" parameterType="Integer">
+        DELETE FROM order_tag WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByOrderId" parameterType="Integer">
+        DELETE FROM order_tag WHERE order_id = #{orderId}
+    </delete>
+
+    <delete id="deleteByOrderIdAndTagName">
+        DELETE FROM order_tag WHERE order_id = #{orderId} AND tag_name = #{tagName}
+    </delete>
+
+    <select id="selectById" parameterType="Integer" resultType="com.mall.module.order.entity.OrderTag">
+        SELECT id, order_id as orderId, merchant_id as merchantId, tag_name as tagName, 
+               tag_color as tagColor, create_time as createTime
+        FROM order_tag WHERE id = #{id}
+    </select>
+
+    <select id="selectByOrderId" parameterType="Integer" resultType="com.mall.module.order.entity.OrderTag">
+        SELECT id, order_id as orderId, merchant_id as merchantId, tag_name as tagName, 
+               tag_color as tagColor, create_time as createTime
+        FROM order_tag WHERE order_id = #{orderId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByMerchantId" parameterType="Integer" resultType="com.mall.module.order.entity.OrderTag">
+        SELECT id, order_id as orderId, merchant_id as merchantId, tag_name as tagName, 
+               tag_color as tagColor, create_time as createTime
+        FROM order_tag WHERE merchant_id = #{merchantId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectTagsByMerchantIdGrouped" parameterType="Integer" resultType="java.util.Map">
+        SELECT tag_name as tagName, tag_color as tagColor, COUNT(*) as count
+        FROM order_tag WHERE merchant_id = #{merchantId}
+        GROUP BY tag_name, tag_color ORDER BY count DESC
+    </select>
+
+    <select id="countByOrderIdAndTagName" resultType="Integer">
+        SELECT COUNT(*) FROM order_tag WHERE order_id = #{orderId} AND tag_name = #{tagName}
+    </select>
+
+</mapper>

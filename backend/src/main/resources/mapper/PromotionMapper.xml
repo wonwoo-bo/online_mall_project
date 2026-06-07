@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.PromotionMapper">
+
+    <insert id="insert" parameterType="com.mall.module.product.entity.Promotion">
+        INSERT INTO promotion (merchant_id, name, type, description, start_time, end_time, 
+            min_amount, reduce_amount, discount_rate, free_shipping_threshold, status, is_recommend, create_time, update_time)
+        VALUES (#{merchantId}, #{name}, #{type}, #{description}, #{startTime}, #{endTime}, 
+            #{minAmount}, #{reduceAmount}, #{discountRate}, #{freeShippingThreshold}, #{status}, #{isRecommend}, NOW(), NOW())
+    </insert>
+
+    <update id="updateById" parameterType="com.mall.module.product.entity.Promotion">
+        UPDATE promotion 
+        SET name = #{name}, type = #{type}, description = #{description}, 
+            start_time = #{startTime}, end_time = #{endTime}, min_amount = #{minAmount},
+            reduce_amount = #{reduceAmount}, discount_rate = #{discountRate}, 
+            free_shipping_threshold = #{freeShippingThreshold}, status = #{status}, 
+            is_recommend = #{isRecommend}, update_time = NOW()
+        WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM promotion WHERE id = #{id} AND merchant_id = #{merchantId}
+    </delete>
+
+    <select id="selectById" resultType="com.mall.module.product.entity.Promotion">
+        SELECT * FROM promotion WHERE id = #{id} AND merchant_id = #{merchantId}
+    </select>
+
+    <select id="selectByMerchantId" resultType="com.mall.module.product.entity.Promotion">
+        SELECT * FROM promotion WHERE merchant_id = #{merchantId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectActivePromotions" resultType="com.mall.module.product.entity.Promotion">
+        SELECT * FROM promotion WHERE merchant_id = #{merchantId} AND status = 1 
+            AND start_time &lt;= NOW() AND end_time &gt;= NOW() ORDER BY create_time DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE promotion SET status = #{status}, update_time = NOW() WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+</mapper>

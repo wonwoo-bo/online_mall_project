@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReviewAppealMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.product.entity.ReviewAppeal">
+        <id column="id" property="id"/>
+        <result column="review_id" property="reviewId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="reason" property="reason"/>
+        <result column="description" property="description"/>
+        <result column="evidence_urls" property="evidenceUrls"/>
+        <result column="status" property="status"/>
+        <result column="handle_time" property="handleTime"/>
+        <result column="handle_remark" property="handleRemark"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review_appeal (review_id, merchant_id, reason, description, evidence_urls)
+        VALUES (#{reviewId}, #{merchantId}, #{reason}, #{description}, #{evidenceUrls})
+    </insert>
+
+    <select id="selectByMerchantId" resultMap="BaseResultMap">
+        SELECT * FROM review_appeal WHERE merchant_id = #{merchantId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByReviewId" resultMap="BaseResultMap">
+        SELECT * FROM review_appeal WHERE review_id = #{reviewId} LIMIT 1
+    </select>
+
+</mapper>

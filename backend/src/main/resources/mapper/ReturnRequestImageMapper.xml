@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReturnRequestImageMapper">
+
+    <resultMap id="returnRequestImageResultMap" type="com.mall.module.product.entity.ReturnRequestImage">
+        <id column="id" property="id"/>
+        <result column="return_request_id" property="returnRequestId"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectByReturnRequestId" resultMap="returnRequestImageResultMap">
+        SELECT * FROM return_request_image WHERE return_request_id = #{returnRequestId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO return_request_image (return_request_id, image_url)
+        VALUES (#{returnRequestId}, #{imageUrl})
+    </insert>
+
+</mapper>

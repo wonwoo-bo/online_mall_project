@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ProductOperationLogMapper">
+
+    <resultMap id="logResultMap" type="com.mall.module.product.entity.ProductOperationLog">
+        <id column="id" property="id"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="product_id" property="productId"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator_name" property="operatorName"/>
+        <result column="operation_type" property="operationType"/>
+        <result column="operation_desc" property="operationDesc"/>
+        <result column="before_value" property="beforeValue"/>
+        <result column="after_value" property="afterValue"/>
+        <result column="ip_address" property="ipAddress"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO product_operation_log (merchant_id, product_id, operator_id, operator_name,
+            operation_type, operation_desc, before_value, after_value, ip_address, create_time)
+        VALUES (#{merchantId}, #{productId}, #{operatorId}, #{operatorName},
+            #{operationType}, #{operationDesc}, #{beforeValue}, #{afterValue}, #{ipAddress}, NOW())
+    </insert>
+
+    <select id="selectByProductId" resultMap="logResultMap">
+        SELECT * FROM product_operation_log
+        WHERE product_id = #{productId} AND merchant_id = #{merchantId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByMerchantId" resultMap="logResultMap">
+        SELECT * FROM product_operation_log
+        WHERE merchant_id = #{merchantId}
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+</mapper>

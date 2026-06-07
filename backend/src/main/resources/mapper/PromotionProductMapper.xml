@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.PromotionProductMapper">
+
+    <insert id="insert" parameterType="com.mall.module.product.entity.PromotionProduct">
+        INSERT INTO promotion_product (promotion_id, product_id, product_name, 
+            product_price, promotion_price, stock, sort_order, status, create_time)
+        VALUES (#{promotionId}, #{productId}, #{productName}, 
+            #{productPrice}, #{promotionPrice}, #{stock}, #{sortOrder}, #{status}, NOW())
+    </insert>
+
+    <update id="updateById" parameterType="com.mall.module.product.entity.PromotionProduct">
+        UPDATE promotion_product 
+        SET product_name = #{productName}, product_price = #{productPrice}, 
+            promotion_price = #{promotionPrice}, stock = #{stock}, 
+            sort_order = #{sortOrder}, status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM promotion_product WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByPromotionId">
+        DELETE FROM promotion_product WHERE promotion_id = #{promotionId}
+    </delete>
+
+    <select id="selectById" resultType="com.mall.module.product.entity.PromotionProduct">
+        SELECT * FROM promotion_product WHERE id = #{id}
+    </select>
+
+    <select id="selectByPromotionId" resultType="com.mall.module.product.entity.PromotionProduct">
+        SELECT * FROM promotion_product WHERE promotion_id = #{promotionId} ORDER BY sort_order ASC
+    </select>
+
+</mapper>

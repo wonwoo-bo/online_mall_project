@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.user.mapper.UserRoleMapper">
+
+    <select id="selectByUserId" resultType="com.mall.module.user.entity.UserRole">
+        SELECT * FROM user_role WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" parameterType="com.mall.module.user.entity.UserRole">
+        INSERT INTO user_role (user_id, role_code, role_name, permissions, create_time)
+        VALUES (#{userId}, #{roleCode}, #{roleName}, #{permissions}, NOW())
+    </insert>
+
+    <update id="updateByUserId" parameterType="com.mall.module.user.entity.UserRole">
+        UPDATE user_role 
+        SET role_code = #{roleCode}, role_name = #{roleName}, permissions = #{permissions}
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>
