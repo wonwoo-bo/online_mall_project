@@ -39,8 +39,8 @@
           </div>
           <div class="product-price">¥{{ item.productPrice }}</div>
         </div>
-        <!-- 评价按钮（只有已完成的订单才显示） -->
-        <div class="review-section" v-if="order.status === 3">
+        <!-- 评价按钮（只有已完成的订单且未退款才显示） -->
+        <div class="review-section" v-if="order.status === 3 && !order.hasRefunded">
           <div class="review-item" v-for="item in order.items" :key="item.id">
             <el-button
               v-if="!reviewedItems.has(item.id)"

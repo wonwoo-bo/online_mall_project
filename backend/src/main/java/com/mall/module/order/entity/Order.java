@@ -47,6 +47,9 @@ public class Order {
     // 订单标签列表（包含名称和颜色）
     private List<OrderTag> tagList;
 
+    // 是否有已完成的退款记录（非数据库字段，用于前端判断）
+    private Boolean hasRefunded;
+
     public Integer getMerchantId() {
         return 0;
     }

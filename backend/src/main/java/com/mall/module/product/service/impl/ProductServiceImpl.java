@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Transactional
@@ -223,8 +224,13 @@ public class ProductServiceImpl implements ProductService {
         if (skus != null && !skus.isEmpty()) {
             for (ProductSku sku : skus) {
                 sku.setProductId(product.getId());
+                sku.setMerchantId(product.getMerchantId());
                 sku.setStatus(1);
                 sku.setSales(0);
+                // 如果skuCode为空或重复风险高，使用UUID生成
+                if (sku.getSkuCode() == null || sku.getSkuCode().trim().isEmpty()) {
+                    sku.setSkuCode("SKU" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase());
+                }
                 productSkuMapper.insert(sku);
             }
         }

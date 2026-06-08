@@ -22,7 +22,7 @@
             <p>{{ getStatusDesc(detail.status) }}</p>
           </div>
           <div class="status-actions">
-            <el-button v-if="detail.status === 'rejected'" type="primary" size="large" round @click="$router.push('/return/apply')">
+            <el-button v-if="detail.status === 'rejected'" type="primary" size="large" round @click="handleReapply">
               <el-icon><RefreshRight /></el-icon> 重新申请
             </el-button>
             <el-button v-if="detail.status === 'approved'" type="warning" size="large" round @click="showShippingForm = true">
@@ -297,11 +297,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getReturnDetail, submitShipping } from '@/api'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(false)
 const detail = ref(null)
 const showShippingForm = ref(false)
@@ -350,6 +351,21 @@ const submitLogistics = async () => {
   } finally {
     submitting.value = false
   }
+}
+
+const handleReapply = () => {
+  if (!detail.value) return
+  router.push({
+    path: '/return/apply',
+    query: {
+      orderId: detail.value.orderId,
+      productId: detail.value.productId,
+      productName: detail.value.productName || '',
+      price: detail.value.price || detail.value.refundAmount || '0',
+      coverImg: detail.value.coverImg || '',
+      orderStatus: 3 // 已完成状态，允许所有退款类型
+    }
+  })
 }
 
 onMounted(loadDetail)

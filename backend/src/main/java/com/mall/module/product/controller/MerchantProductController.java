@@ -112,8 +112,13 @@ public class MerchantProductController {
             for (SkuRequest skuRequest : skuRequests) {
                 ProductSku sku = new ProductSku();
                 sku.setSkuCode(skuRequest.getSkuCode());
+                sku.setSkuName(skuRequest.getSkuName());
                 sku.setSpecs(skuRequest.getSpecs());
+                sku.setSpecsJson(skuRequest.getSpecsJson());
+                sku.setSpecValues(skuRequest.getSpecValues());
                 sku.setPrice(skuRequest.getPrice() != null ? skuRequest.getPrice() : request.getPrice());
+                sku.setCostPrice(skuRequest.getCostPrice());
+                sku.setMarketPrice(skuRequest.getMarketPrice());
                 sku.setStock(skuRequest.getStock() != null ? skuRequest.getStock() : request.getStock());
                 skus.add(sku);
             }

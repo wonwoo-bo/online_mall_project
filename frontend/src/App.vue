@@ -97,7 +97,7 @@
 
       <!-- 底部 -->
       <footer class="footer" v-if="!hideHeader && !hideFooter">
-        <p>© 2024 仿淘宝电商平台 - Spring Boot + Vue3 项目</p>
+        <p></p>
       </footer>
     </template>
   </div>

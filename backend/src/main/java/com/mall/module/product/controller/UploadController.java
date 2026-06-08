@@ -19,8 +19,8 @@ import java.util.UUID;
 public class UploadController {
 
     private static final String UPLOAD_DIR = "uploads";
-    private static final String[] ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"};
-    private static final long MAX_FILE_SIZE = 2 * 1024 * 1024;
+    private static final String[] ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"};
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
     private static Path baseUploadPath;
 
     @PostConstruct
@@ -48,11 +48,11 @@ public class UploadController {
 
         String extension = getFileExtension(originalFilename);
         if (!isAllowedExtension(extension)) {
-            return Result.error("只允许上传 JPG/JPEG/PNG 格式的图片");
+            return Result.error("只允许上传 JPG/JPEG/PNG/GIF/WEBP 格式的图片");
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            return Result.error("图片大小不能超过 2MB");
+            return Result.error("图片大小不能超过 5MB");
         }
 
         try {

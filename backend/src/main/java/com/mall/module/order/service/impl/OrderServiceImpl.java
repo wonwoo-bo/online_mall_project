@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.mall.module.order.mapper.OrderOperationLogMapper;
+import com.mall.module.product.mapper.ReturnRequestMapper;
 
 @Service
 @Transactional
@@ -42,6 +43,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderOperationLogMapper orderOperationLogMapper;
+
+    @Autowired
+    private ReturnRequestMapper returnRequestMapper;
 
     @Autowired
     private OrderItemShipMapper orderItemShipMapper;
@@ -258,6 +262,8 @@ public class OrderServiceImpl implements OrderService {
         // 为每个订单加载商品列表
         for (Order order : allOrders) {
             order.setItems(orderItemMapper.selectByOrderId(order.getId()));
+            // 检查该订单是否有已完成的退款记录
+            order.setHasRefunded(returnRequestMapper.countCompletedByOrderId(order.getId()) > 0);
         }
 
         int total = allOrders.size();

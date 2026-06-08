@@ -10,6 +10,7 @@ public class SkuRequest {
     private String skuCode;
     private String skuName;
     private String specs;
+    private String specsJson;
     private BigDecimal price;
     private BigDecimal costPrice;
     private BigDecimal marketPrice;

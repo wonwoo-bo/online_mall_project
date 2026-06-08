@@ -65,21 +65,26 @@
           <template v-if="order.status === 3">
             <el-button v-if="order.expressCompany || order.trackingNo" plain @click="viewLogistics">查看物流</el-button>
             <el-button
-              v-if="!isOrderReviewed(order)"
+              v-if="!order.hasRefunded && !isOrderReviewed(order)"
               type="primary"
               @click="writeReview(order)"
             >评价商品</el-button>
             <el-button
-              v-else-if="!isOrderAppended(order)"
+              v-else-if="!order.hasRefunded && !isOrderAppended(order)"
               type="warning"
               @click="writeAppend(order)"
             >追评</el-button>
             <el-button
-              v-else
+              v-else-if="!order.hasRefunded"
               type="success"
               disabled
             >已评价</el-button>
-            <el-button type="success" plain @click="reorder(order)">再次拼单</el-button>
+            <el-button
+              v-if="!order.hasRefunded"
+              type="success"
+              plain
+              @click="reorder(order)"
+            >再次拼单</el-button>
           </template>
           <template v-if="order.status === 4">
             <el-button type="primary" @click="reorder(order)">再次拼单</el-button>

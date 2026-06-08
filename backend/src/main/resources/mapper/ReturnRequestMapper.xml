@@ -197,4 +197,9 @@
         ORDER BY totalCount DESC
     </select>
 
+    <select id="countCompletedByOrderId" resultType="int">
+        SELECT COUNT(*) FROM return_request
+        WHERE order_id = #{orderId} AND status = 4
+    </select>
+
 </mapper>

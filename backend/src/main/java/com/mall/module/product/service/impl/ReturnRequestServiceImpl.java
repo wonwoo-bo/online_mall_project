@@ -143,6 +143,19 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
 
     @Override
     public void submitReturn(ReturnRequest returnRequest, List<String> imageUrls) {
+        // 检查该订单是否已有进行中（待审核/已通过/退货中）的退换货记录，防止重复提交
+        if (returnRequest.getOrderId() != null) {
+            List<ReturnRequest> existingRequests = returnRequestMapper.selectByUserId(
+                    returnRequest.getUserId(), null);
+            for (ReturnRequest existing : existingRequests) {
+                if (existing.getOrderId().equals(returnRequest.getOrderId())
+                        && existing.getStatus() != null
+                        && (existing.getStatus() == 0 || existing.getStatus() == 1 || existing.getStatus() == 3)) {
+                    throw new RuntimeException("该订单已有进行中的退换货申请，请勿重复提交");
+                }
+            }
+        }
+
         LocalDateTime now = LocalDateTime.now();
         returnRequest.setCreateTime(now);
         returnRequest.setUpdateTime(now);
@@ -380,6 +393,19 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         refund.setMerchantRemark(remark);
         refund.setAuditTime(LocalDateTime.now());
         returnRequestMapper.update(refund);
+
+        // 商家拒绝时，恢复订单状态（从"退换货中5"恢复为"已完成3"），允许用户再次申请
+        if (newStatus == 2 && refund.getOrderId() != null) {
+            try {
+                Order order = orderMapper.selectById(refund.getOrderId());
+                if (order != null && order.getStatus() != null && order.getStatus() == 5) {
+                    order.setStatus(3); // 恢复为已完成
+                    orderMapper.update(order);
+                }
+            } catch (Exception e) {
+                System.out.println("恢复订单状态失败: " + e.getMessage());
+            }
+        }
 
         // 记录操作日志
         Merchant merchant = merchantMapper.selectById(merchantId);

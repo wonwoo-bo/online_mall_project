@@ -133,7 +133,7 @@
               size="default"
               plain
               round
-              @click.stop="$router.push('/return/apply')"
+              @click.stop="handleReapply(item)"
             >
               <el-icon><RefreshRight /></el-icon> 重新申请
             </el-button>
@@ -146,12 +146,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getReturns, cancelReturn } from '@/api'
 import { getUserId } from '@/utils/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(false)
 const list = ref([])
 const status = ref('')
@@ -192,6 +193,20 @@ const handleCancel = async (item) => {
       ElMessage.error('取消失败，请重试')
     }
   }
+}
+
+const handleReapply = (item) => {
+  router.push({
+    path: '/return/apply',
+    query: {
+      orderId: item.orderId,
+      productId: item.productId,
+      productName: item.productName || '',
+      price: item.price || item.refundAmount || '0',
+      coverImg: item.coverImg || '',
+      orderStatus: 3 // 已完成状态，允许所有退款类型
+    }
+  })
 }
 
 let routeListener = null

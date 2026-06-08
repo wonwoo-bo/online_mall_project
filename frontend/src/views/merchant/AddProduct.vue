@@ -5,9 +5,9 @@
         <span>添加商品</span>
       </template>
 
-      <el-form ref="formRef" :model="form" label-width="120px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="商品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入商品名称" />
+          <el-input v-model="form.name" placeholder="请输入商品名称" maxlength="100" show-word-limit />
         </el-form-item>
 
         <el-form-item label="商品描述" prop="description">
@@ -15,15 +15,24 @@
             type="textarea"
             v-model="form.description"
             placeholder="请输入商品描述"
+            rows="4"
           />
         </el-form-item>
 
         <el-form-item label="商品价格" prop="price">
-          <el-input v-model.number="form.price" placeholder="请输入商品价格" />
+          <el-input-number v-model="form.price" :min="0.01" :precision="2" placeholder="请输入商品价格" style="width: 200px;" />
+        </el-form-item>
+
+        <el-form-item label="商品原价" prop="originalPrice">
+          <el-input-number v-model="form.originalPrice" :min="0" :precision="2" placeholder="请输入商品原价（可选）" style="width: 200px;" />
+        </el-form-item>
+
+        <el-form-item label="成本价" prop="costPrice">
+          <el-input-number v-model="form.costPrice" :min="0" :precision="2" placeholder="请输入成本价（可选）" style="width: 200px;" />
         </el-form-item>
 
         <el-form-item label="库存数量" prop="stock">
-          <el-input v-model.number="form.stock" placeholder="请输入库存数量" />
+          <el-input-number v-model="form.stock" :min="0" :precision="0" placeholder="请输入库存数量" style="width: 200px;" />
         </el-form-item>
 
         <el-form-item label="商品分类" prop="categoryId">
@@ -275,6 +284,8 @@ const form = reactive({
   name: "",
   description: "",
   price: null,
+  originalPrice: null,
+  costPrice: null,
   stock: 0,
   categoryId: null,
   brandId: null,
@@ -284,6 +295,54 @@ const form = reactive({
   detailImages: [],
   skus: []
 });
+
+// 表单校验规则
+const rules = {
+  name: [
+    { required: true, message: "请输入商品名称", trigger: "blur" },
+    { min: 2, max: 100, message: "商品名称长度为2-100个字符", trigger: "blur" }
+  ],
+  description: [
+    { required: true, message: "请输入商品描述", trigger: "blur" },
+    { min: 10, message: "商品描述至少10个字符", trigger: "blur" }
+  ],
+  price: [
+    { required: true, message: "请输入商品价格", trigger: "change" },
+    {
+      validator: (rule, value, callback) => {
+        if (value === null || value === undefined || value === "") {
+          callback(new Error("请输入商品价格"));
+        } else if (value <= 0) {
+          callback(new Error("商品价格必须大于0"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "change"
+    }
+  ],
+  stock: [
+    { required: true, message: "请输入库存数量", trigger: "change" },
+    {
+      validator: (rule, value, callback) => {
+        if (value === null || value === undefined || value === "") {
+          callback(new Error("请输入库存数量"));
+        } else if (value < 0) {
+          callback(new Error("库存数量不能为负数"));
+        } else {
+          callback();
+        }
+      },
+      trigger: "change"
+    }
+  ],
+  categoryId: [
+    { required: true, message: "请选择商品分类", trigger: "change" }
+  ],
+  coverImg: [
+    { required: true, message: "请上传商品封面图", trigger: "change" }
+  ]
+};
 
 const coverImages = ref([]);
 const mainImages = ref([]);
@@ -509,6 +568,19 @@ const removeSpec = (index) => {
 const submitForm = async () => {
   if (!formRef.value) return;
 
+  // 表单校验
+  const valid = await formRef.value.validate().catch(() => false);
+  if (!valid) {
+    ElMessage.warning("请完善商品信息后再提交");
+    return;
+  }
+
+  // 封面图校验
+  if (!form.coverImg) {
+    ElMessage.warning("请上传商品封面图");
+    return;
+  }
+
   try {
     const res = await createProduct(form);
     if (res && (res.code === 200 || res.success)) {
@@ -518,7 +590,7 @@ const submitForm = async () => {
       ElMessage.error(res?.message || "添加失败");
     }
   } catch (error) {
-    ElMessage.error("添加失败");
+    ElMessage.error(error?.response?.data?.message || "添加失败");
   }
 };
 
@@ -656,22 +728,30 @@ const handleUploadError = () => {
   ElMessage.error("图片上传失败，请稍后重试");
 };
 
+// 当基础价格变化时，更新SKU的默认价格
 watch(
   () => form.price,
   (newVal) => {
-    if (newVal < 0) {
-      form.price = 0;
-      ElMessage.warning("商品价格不能为负数");
+    if (form.skus && form.skus.length > 0 && newVal > 0) {
+      form.skus.forEach(sku => {
+        if (!sku.price || sku.price <= 0) {
+          sku.price = newVal;
+        }
+      });
     }
   },
 );
 
+// 当基础库存变化时，更新SKU的默认库存
 watch(
   () => form.stock,
   (newVal) => {
-    if (newVal < 0) {
-      form.stock = 0;
-      ElMessage.warning("库存数量不能为负数");
+    if (form.skus && form.skus.length > 0 && newVal >= 0) {
+      form.skus.forEach(sku => {
+        if (!sku.stock || sku.stock < 0) {
+          sku.stock = newVal;
+        }
+      });
     }
   },
 );

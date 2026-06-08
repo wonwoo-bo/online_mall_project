@@ -44,6 +44,9 @@ public class ReviewServiceImpl implements ReviewService {
     @Autowired
     private ReviewAppealMapper reviewAppealMapper;
 
+    @Autowired
+    private ReturnRequestMapper returnRequestMapper;
+
     @Override
     public PageResult<Map<String, Object>> getProductReviews(Integer productId, Integer rating,
                                                               Integer hasImage, int page, int size) {
@@ -105,6 +108,14 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public void submitReview(Review review, List<String> imageUrls) {
+        // 检查该订单商品是否已退货（status=4表示已完成退款）
+        List<ReturnRequest> returnRequests = returnRequestMapper.selectByUserId(review.getUserId(), null);
+        for (ReturnRequest returnRequest : returnRequests) {
+            if (returnRequest.getOrderItemId().equals(review.getOrderItemId()) && returnRequest.getStatus() == 4) {
+                throw new RuntimeException("该商品已退货，无法评价");
+            }
+        }
+
         review.setCreateTime(LocalDateTime.now());
         review.setLikeCount(0);
         review.setHasAppend(0);

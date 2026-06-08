@@ -9,6 +9,7 @@ import com.mall.module.order.mapper.OrderItemMapper;
 import com.mall.module.order.mapper.OrderMapper;
 import com.mall.module.product.mapper.ProductImageMapper;
 import com.mall.module.product.mapper.ProductMapper;
+import com.mall.module.product.mapper.ReturnRequestMapper;
 import com.mall.module.product.mapper.ReviewAppendMapper;
 import com.mall.module.product.mapper.ReviewImageMapper;
 import com.mall.module.product.mapper.ReviewLikeMapper;
@@ -66,6 +67,8 @@ public class ApiController {
     private OrderMapper orderMapper;
     @Autowired
     private OrderItemMapper orderItemMapper;
+    @Autowired
+    private ReturnRequestMapper returnRequestMapper;
 
     // ==================== 商品相关 ====================
 
@@ -328,6 +331,11 @@ public class ApiController {
             // BUG-002: 重复评价校验 - 同一订单明细只能评价一次（追评通过 append 接口）
             if (reviewMapper.existsByOrderItemId(review.getOrderItemId()) > 0) {
                 return Result.error("该订单已评价，不能重复评价，如需补充请使用追评功能");
+            }
+
+            // 退款校验 - 已完成退款的订单商品不能再评价
+            if (returnRequestMapper.countCompletedByOrderId(order.getId()) > 0) {
+                return Result.error("该订单已退款，无法评价");
             }
 
             List<String> imageUrls = new ArrayList<>();
@@ -598,6 +606,10 @@ public class ApiController {
             item.put("shipTime", order.getShipTime());
             item.put("receiveTime", order.getReceiveTime());
             item.put("shippingAddress", order.getShippingAddress());
+
+            // 检查订单是否已退款
+            boolean hasRefunded = returnRequestMapper.countCompletedByOrderId(order.getId()) > 0;
+            item.put("hasRefunded", hasRefunded);
 
             // 查询订单明细
             List<OrderItem> items = orderItemMapper.selectByOrderId(order.getId());

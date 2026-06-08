@@ -39,6 +39,24 @@ public class SpecServiceImpl implements SpecService {
         }
 
         specTypeMapper.insert(specType);
+        
+        // 同时保存规格值
+        if (specType.getValues() != null && !specType.getValues().isEmpty()) {
+            for (SpecValue value : specType.getValues()) {
+                if (value.getValue() != null && !value.getValue().trim().isEmpty()) {
+                    value.setTypeId(specType.getId());
+                    value.setMerchantId(merchantId);
+                    if (value.getSortOrder() == null) {
+                        value.setSortOrder(0);
+                    }
+                    if (value.getStatus() == null) {
+                        value.setStatus(1);
+                    }
+                    specValueMapper.insert(value);
+                }
+            }
+        }
+        
         return specTypeMapper.selectById(specType.getId(), merchantId);
     }
 
@@ -63,6 +81,30 @@ public class SpecServiceImpl implements SpecService {
         specType.setId(typeId);
         specType.setMerchantId(merchantId);
         specTypeMapper.updateById(specType);
+        
+        // 同时更新规格值：新增没有的，更新已有的
+        if (specType.getValues() != null && !specType.getValues().isEmpty()) {
+            for (SpecValue value : specType.getValues()) {
+                if (value.getValue() != null && !value.getValue().trim().isEmpty()) {
+                    value.setTypeId(typeId);
+                    value.setMerchantId(merchantId);
+                    if (value.getSortOrder() == null) {
+                        value.setSortOrder(0);
+                    }
+                    if (value.getStatus() == null) {
+                        value.setStatus(1);
+                    }
+                    if (value.getId() != null) {
+                        // 更新已有规格值
+                        specValueMapper.updateById(value);
+                    } else {
+                        // 新增规格值
+                        specValueMapper.insert(value);
+                    }
+                }
+            }
+        }
+        
         return specTypeMapper.selectById(typeId, merchantId);
     }
 

@@ -41,4 +41,9 @@ public interface ReturnRequestMapper {
             @Param("merchantId") Integer merchantId,
             @Param("startTime") String startTime,
             @Param("endTime") String endTime);
+
+    /**
+     * 检查某订单下是否有已完成的退换货记录（status=4表示已完成退款）
+     */
+    int countCompletedByOrderId(@Param("orderId") Integer orderId);
 }

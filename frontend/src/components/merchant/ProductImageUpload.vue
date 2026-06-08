@@ -128,7 +128,7 @@ const props = defineProps({
   },
   uploadUrl: {
     type: String,
-    default: '/api/upload/image'
+    default: '/api/upload'
   },
   maxSize: {
     type: Number,

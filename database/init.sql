@@ -1209,6 +1209,88 @@ INSERT INTO `system_config` (`config_key`, `config_value`, `config_name`, `descr
 ('upload_path', '/uploads/', '上传存储路径', '文件上传后存储的目录路径', 'upload', 3);
 
 -- ============================================
+-- 五、默认规格数据
+-- ============================================
+
+-- 为每个商家初始化常用规格类型和规格值
+-- 商家1：数码旗舰店
+INSERT INTO `spec_type` (`merchant_id`, `name`, `sort_order`, `status`) VALUES
+(1, '颜色', 1, 1),
+(1, '存储容量', 2, 1),
+(1, '版本', 3, 1);
+
+INSERT INTO `spec_value` (`merchant_id`, `type_id`, `value`, `sort_order`, `status`) VALUES
+(1, 1, '深空黑', 1, 1),
+(1, 1, '银色', 2, 1),
+(1, 1, '金色', 3, 1),
+(1, 1, '远峰蓝', 4, 1),
+(1, 2, '128GB', 1, 1),
+(1, 2, '256GB', 2, 1),
+(1, 2, '512GB', 3, 1),
+(1, 2, '1TB', 4, 1),
+(1, 3, '标准版', 1, 1),
+(1, 3, 'Pro版', 2, 1),
+(1, 3, 'Max版', 3, 1);
+
+-- 商家2：服饰专营店
+INSERT INTO `spec_type` (`merchant_id`, `name`, `sort_order`, `status`) VALUES
+(2, '颜色', 1, 1),
+(2, '尺码', 2, 1);
+
+INSERT INTO `spec_value` (`merchant_id`, `type_id`, `value`, `sort_order`, `status`) VALUES
+(2, 4, '黑色', 1, 1),
+(2, 4, '白色', 2, 1),
+(2, 4, '红色', 3, 1),
+(2, 4, '蓝色', 4, 1),
+(2, 4, '灰色', 5, 1),
+(2, 5, 'S', 1, 1),
+(2, 5, 'M', 2, 1),
+(2, 5, 'L', 3, 1),
+(2, 5, 'XL', 4, 1),
+(2, 5, 'XXL', 5, 1);
+
+-- 商家3：美妆官方店
+INSERT INTO `spec_type` (`merchant_id`, `name`, `sort_order`, `status`) VALUES
+(3, '色号', 1, 1),
+(3, '规格', 2, 1);
+
+INSERT INTO `spec_value` (`merchant_id`, `type_id`, `value`, `sort_order`, `status`) VALUES
+(3, 6, '正红色', 1, 1),
+(3, 6, '豆沙色', 2, 1),
+(3, 6, '橘红色', 3, 1),
+(3, 6, '玫瑰粉', 4, 1),
+(3, 7, '30ml', 1, 1),
+(3, 7, '50ml', 2, 1),
+(3, 7, '100ml', 3, 1);
+
+-- 商家4：家居生活馆
+INSERT INTO `spec_type` (`merchant_id`, `name`, `sort_order`, `status`) VALUES
+(4, '颜色', 1, 1),
+(4, '尺寸', 2, 1);
+
+INSERT INTO `spec_value` (`merchant_id`, `type_id`, `value`, `sort_order`, `status`) VALUES
+(4, 8, '米白色', 1, 1),
+(4, 8, '原木色', 2, 1),
+(4, 8, '深棕色', 3, 1),
+(4, 9, '小号', 1, 1),
+(4, 9, '中号', 2, 1),
+(4, 9, '大号', 3, 1);
+
+-- 商家5：母婴用品店
+INSERT INTO `spec_type` (`merchant_id`, `name`, `sort_order`, `status`) VALUES
+(5, '适用年龄', 1, 1),
+(5, '规格', 2, 1);
+
+INSERT INTO `spec_value` (`merchant_id`, `type_id`, `value`, `sort_order`, `status`) VALUES
+(5, 10, '0-6个月', 1, 1),
+(5, 10, '6-12个月', 2, 1),
+(5, 10, '1-3岁', 3, 1),
+(5, 10, '3-6岁', 4, 1),
+(5, 11, '小包装', 1, 1),
+(5, 11, '中包装', 2, 1),
+(5, 11, '大包装', 3, 1);
+
+-- ============================================
 -- 六、创建视图
 -- ============================================
 
