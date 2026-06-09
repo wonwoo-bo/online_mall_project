@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.MerchantBrandMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.product.entity.MerchantBrand">
+        <id column="id" property="id"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="name" property="name"/>
+        <result column="logo" property="logo"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByMerchantId" resultMap="BaseResultMap">
+        SELECT * FROM merchant_brand WHERE merchant_id = #{merchantId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM merchant_brand WHERE id = #{id} AND merchant_id = #{merchantId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO merchant_brand (merchant_id, name, logo, description, status, create_time, update_time)
+        VALUES (#{merchantId}, #{name}, #{logo}, #{description}, #{status}, NOW(), NOW())
+    </insert>
+
+    <update id="updateById">
+        UPDATE merchant_brand
+        SET name = #{name}, logo = #{logo}, description = #{description},
+            status = #{status}, update_time = NOW()
+        WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM merchant_brand WHERE id = #{id} AND merchant_id = #{merchantId}
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE merchant_brand SET status = #{status}, update_time = NOW()
+        WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <select id="checkNameExists" resultType="int">
+        SELECT COUNT(*) FROM merchant_brand
+        WHERE merchant_id = #{merchantId} AND name = #{name}
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+
+</mapper>

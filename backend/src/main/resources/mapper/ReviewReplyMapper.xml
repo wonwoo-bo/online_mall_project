@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReviewReplyMapper">
+
+    <resultMap id="reviewReplyResultMap" type="com.mall.module.product.entity.ReviewReply">
+        <id column="id" property="id"/>
+        <result column="review_id" property="reviewId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectByReviewId" resultMap="reviewReplyResultMap">
+        SELECT * FROM review_reply WHERE review_id = #{reviewId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review_reply (review_id, merchant_id, content)
+        VALUES (#{reviewId}, #{merchantId}, #{content})
+    </insert>
+
+</mapper>

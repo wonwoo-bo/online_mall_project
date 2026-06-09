@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.order.mapper.OrderOperationLogMapper">
+
+    <insert id="insert" parameterType="java.util.Map">
+        INSERT INTO order_operation_log (
+            order_id, order_no, merchant_id, operator_id, operator_name,
+            operation_type, operation_desc, before_status, after_status, remark, extend_data, create_time
+        ) VALUES (
+            #{orderId}, #{orderNo}, #{merchantId}, #{operatorId}, #{operatorName},
+            #{operationType}, #{operationDesc}, #{beforeStatus}, #{afterStatus}, #{remark}, #{extendData}, #{createTime}
+        )
+    </insert>
+
+    <select id="selectByOrderId" resultType="java.util.Map">
+        SELECT id, order_id as orderId, order_no as orderNo, merchant_id as merchantId,
+               operator_id as operatorId, operator_name as operatorName,
+               operation_type as operationType, operation_desc as operationDesc,
+               before_status as beforeStatus, after_status as afterStatus,
+               remark, extend_data as extendData, create_time as createTime
+        FROM order_operation_log
+        WHERE order_id = #{orderId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByMerchantPaged" resultType="java.util.Map">
+        SELECT id, order_id as orderId, order_no as orderNo, merchant_id as merchantId,
+               operator_id as operatorId, operator_name as operatorName,
+               operation_type as operationType, operation_desc as operationDesc,
+               before_status as beforeStatus, after_status as afterStatus,
+               remark, extend_data as extendData, create_time as createTime
+        FROM order_operation_log
+        WHERE merchant_id = #{merchantId}
+        <if test="operationType != null">
+            AND operation_type = #{operationType}
+        </if>
+        <if test="startDate != null">
+            AND create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND create_time &lt;= #{endDate}
+        </if>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countByMerchantPaged" resultType="Integer">
+        SELECT COUNT(*)
+        FROM order_operation_log
+        WHERE merchant_id = #{merchantId}
+        <if test="operationType != null">
+            AND operation_type = #{operationType}
+        </if>
+        <if test="startDate != null">
+            AND create_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND create_time &lt;= #{endDate}
+        </if>
+    </select>
+
+</mapper>

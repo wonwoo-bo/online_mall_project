@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.BrandMapper">
+
+    <resultMap id="brandResultMap" type="com.mall.module.product.entity.Brand">
+        <id column="id" property="id"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="name" property="name"/>
+        <result column="logo" property="logo"/>
+        <result column="description" property="description"/>
+        <result column="first_letter" property="firstLetter"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="product_count" property="productCount"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="delete_time" property="deleteTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO brand (merchant_id, name, logo, description, first_letter, sort_order, product_count, status, create_time, update_time)
+        VALUES (#{merchantId}, #{name}, #{logo}, #{description}, #{firstLetter}, #{sortOrder}, 0, #{status}, NOW(), NOW())
+    </insert>
+
+    <update id="updateById">
+        UPDATE brand
+        SET name = #{name}, logo = #{logo}, description = #{description},
+            first_letter = #{firstLetter}, sort_order = #{sortOrder},
+            status = #{status}, update_time = NOW()
+        WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM brand WHERE id = #{id} AND merchant_id = #{merchantId}
+    </delete>
+
+    <select id="selectById" resultMap="brandResultMap">
+        SELECT * FROM brand WHERE id = #{id} AND merchant_id = #{merchantId}
+    </select>
+
+    <select id="selectByMerchantId" resultMap="brandResultMap">
+        SELECT * FROM brand WHERE merchant_id = #{merchantId} AND status = 1 ORDER BY sort_order ASC, create_time DESC
+    </select>
+
+    <select id="checkNameExists" resultType="Integer">
+        SELECT COUNT(*) FROM brand WHERE merchant_id = #{merchantId} AND name = #{name}
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+
+    <select id="checkBrandHasProducts" resultType="Integer">
+        SELECT COUNT(*) FROM product WHERE merchant_id = #{merchantId} AND brand_id = #{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE brand SET status = #{status}, update_time = NOW() WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <update id="moveToRecycle">
+        UPDATE brand SET status = -1, delete_time = NOW(), update_time = NOW() WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <select id="selectRecycleList" resultType="java.util.Map">
+        SELECT id, name, logo, delete_time AS deleteTime
+        FROM brand
+        WHERE merchant_id = #{merchantId} AND status = -1
+        ORDER BY delete_time DESC
+    </select>
+
+    <update id="restoreBrand">
+        UPDATE brand SET status = 1, delete_time = NULL, update_time = NOW() WHERE id = #{id} AND merchant_id = #{merchantId}
+    </update>
+
+    <delete id="forceDeleteBrand">
+        DELETE FROM brand WHERE id = #{id} AND merchant_id = #{merchantId}
+    </delete>
+
+    <!-- ========== 商品中心管理模块新增SQL ========== -->
+
+    <!-- 检查品牌是否已停用（停用品牌无法新增绑定本店商品） -->
+    <select id="checkBrandStatus" resultType="Integer">
+        SELECT COUNT(*) FROM brand WHERE id = #{id} AND status = 1
+    </select>
+
+    <!-- 更新品牌商品数量 -->
+    <update id="updateProductCount">
+        UPDATE brand b SET product_count = (
+            SELECT COUNT(*) FROM product WHERE brand_id = #{merchantId}
+        ) WHERE merchant_id = #{merchantId}
+    </update>
+
+</mapper>

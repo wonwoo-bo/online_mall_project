@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReturnRequestMapper">
+
+    <resultMap id="returnRequestResultMap" type="com.mall.module.product.entity.ReturnRequest">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_item_id" property="orderItemId"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="reason" property="reason"/>
+        <result column="status" property="status"/>
+        <result column="type" property="type"/>
+        <result column="reason_type" property="reasonType"/>
+        <result column="merchant_remark" property="merchantRemark"/>
+        <result column="reject_reason" property="rejectReason"/>
+        <result column="user_evidence_urls" property="userEvidenceUrls"/>
+        <result column="return_address_id" property="returnAddressId"/>
+        <result column="return_receiver_name" property="returnReceiverName"/>
+        <result column="return_receiver_phone" property="returnReceiverPhone"/>
+        <result column="return_address" property="returnAddress"/>
+        <result column="refund_amount" property="refundAmount"/>
+        <result column="actual_refund_amount" property="actualRefundAmount"/>
+        <result column="logistics_no" property="logisticsNo"/>
+        <result column="logistics_company" property="logisticsCompany"/>
+        <result column="audit_time" property="auditTime"/>
+        <result column="receive_time" property="receiveTime"/>
+        <result column="refund_time" property="refundTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="returnRequestResultMap">
+        SELECT * FROM return_request
+        <where>
+            user_id = #{userId}
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="returnRequestResultMap">
+        SELECT * FROM return_request WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO return_request (order_id, order_item_id, user_id, product_id, merchant_id, reason, status, type, reason_type, refund_amount, merchant_remark, reject_reason, user_evidence_urls, return_address_id, return_receiver_name, return_receiver_phone, return_address, actual_refund_amount, logistics_no, logistics_company, create_time, update_time)
+        VALUES (#{orderId}, #{orderItemId}, #{userId}, #{productId}, #{merchantId}, #{reason}, #{status}, #{type}, #{reasonType}, #{refundAmount}, #{merchantRemark}, #{rejectReason}, #{userEvidenceUrls}, #{returnAddressId}, #{returnReceiverName}, #{returnReceiverPhone}, #{returnAddress}, #{actualRefundAmount}, #{logisticsNo}, #{logisticsCompany}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE return_request
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="logisticsCompany != null">logistics_company = #{logisticsCompany},</if>
+            <if test="logisticsNo != null">logistics_no = #{logisticsNo},</if>
+            <if test="merchantRemark != null">merchant_remark = #{merchantRemark},</if>
+            <if test="rejectReason != null">reject_reason = #{rejectReason},</if>
+            <if test="returnAddressId != null">return_address_id = #{returnAddressId},</if>
+            <if test="returnReceiverName != null">return_receiver_name = #{returnReceiverName},</if>
+            <if test="returnReceiverPhone != null">return_receiver_phone = #{returnReceiverPhone},</if>
+            <if test="returnAddress != null">return_address = #{returnAddress},</if>
+            <if test="actualRefundAmount != null">actual_refund_amount = #{actualRefundAmount},</if>
+            <if test="auditTime != null">audit_time = #{auditTime},</if>
+            <if test="receiveTime != null">receive_time = #{receiveTime},</if>
+            <if test="refundTime != null">refund_time = #{refundTime},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="countPendingByMerchant" resultType="int">
+        SELECT COUNT(*) FROM return_request 
+        WHERE status = 0 AND merchant_id = #{merchantId}
+    </select>
+
+    <select id="selectByMerchantId" resultType="java.util.Map">
+        SELECT r.id, r.order_id as orderId, r.product_id as productId, 
+               r.reason, r.status, r.type, r.refund_amount as refundAmount,
+               r.create_time as createTime, r.merchant_remark as merchantRemark,
+               p.name as productName, p.cover_img as coverImg
+        FROM return_request r
+        LEFT JOIN product p ON r.product_id = p.id
+        WHERE r.merchant_id = #{merchantId}
+        <if test="status != null">
+            AND r.status = #{status}
+        </if>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectDetailById" resultType="java.util.Map">
+        SELECT r.id,
+               r.order_id as orderId,
+               r.order_item_id as orderItemId,
+               r.user_id as userId,
+               r.product_id as productId,
+               r.merchant_id as merchantId,
+               r.reason,
+               r.type,
+               r.reason_type as reasonType,
+               r.status,
+               r.merchant_remark as merchantRemark,
+               r.reject_reason as rejectReason,
+               r.user_evidence_urls as userEvidenceUrls,
+               r.return_address_id as returnAddressId,
+               r.return_receiver_name as returnReceiverName,
+               r.return_receiver_phone as returnReceiverPhone,
+               r.return_address as returnAddress,
+               r.refund_amount as refundAmount,
+               r.actual_refund_amount as actualRefundAmount,
+               r.audit_time as auditTime,
+               r.receive_time as receiveTime,
+               r.refund_time as refundTime,
+               r.create_time as createTime,
+               o.order_no as orderNo,
+               u.username as userName, u.nickname as userNickname,
+               p.name as productName, p.cover_img as coverImg,
+               oi.specs as specInfo, oi.quantity as quantity, oi.product_price as itemPrice
+        FROM return_request r
+        LEFT JOIN `order` o ON r.order_id = o.id
+        LEFT JOIN `user` u ON r.user_id = u.id
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN order_item oi ON r.order_item_id = oi.id
+        WHERE r.id = #{id}
+    </select>
+
+    <select id="selectPageByMerchantId" resultType="java.util.Map">
+        SELECT r.id, r.order_id as orderId, r.order_item_id as orderItemId,
+               r.user_id as userId, r.product_id as productId,
+               r.reason, r.status, r.type, r.reason_type as reasonType,
+               r.refund_amount as refundAmount, r.create_time as createTime,
+               o.order_no as orderNo,
+               p.name as productName, p.cover_img as coverImg,
+               u.username as userName
+        FROM return_request r
+        LEFT JOIN `order` o ON r.order_id = o.id
+        LEFT JOIN product p ON r.product_id = p.id
+        LEFT JOIN `user` u ON r.user_id = u.id
+        WHERE r.merchant_id = #{merchantId}
+        <if test="status != null">
+            AND r.status = #{status}
+        </if>
+        <if test="type != null">
+            AND r.type = #{type}
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND r.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND r.create_time &lt;= #{endTime}
+        </if>
+        <if test="orderNo != null and orderNo != ''">
+            AND o.order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="userId != null and userId != ''">
+            AND r.user_id = #{userId}
+        </if>
+        <if test="userName != null and userName != ''">
+            AND (u.username LIKE CONCAT('%', #{userName}, '%') OR u.nickname LIKE CONCAT('%', #{userName}, '%'))
+        </if>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="selectStatisticsByMerchantId" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalCount,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as pendingCount,
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as waitReturnCount,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as returningCount,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as waitRefundCount,
+            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as completedCount,
+            SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) as rejectedCount,
+            COALESCE(SUM(CASE WHEN status = 4 THEN actual_refund_amount ELSE 0 END), 0) as totalRefundAmount
+        FROM return_request
+        WHERE merchant_id = #{merchantId}
+    </select>
+
+    <select id="selectReasonStatisticsByMerchantId" resultType="java.util.Map">
+        SELECT 
+            reason_type as reasonType,
+            COUNT(*) as totalCount,
+            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as completedCount,
+            SUM(CASE WHEN status IN (0, 1, 2, 3) THEN 1 ELSE 0 END) as approvedCount,
+            SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) as rejectedCount
+        FROM return_request
+        WHERE merchant_id = #{merchantId}
+        <if test="startTime != null and startTime != ''">
+            AND create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND create_time &lt;= #{endTime}
+        </if>
+        GROUP BY reason_type
+        ORDER BY totalCount DESC
+    </select>
+
+    <select id="countCompletedByOrderId" resultType="int">
+        SELECT COUNT(*) FROM return_request
+        WHERE order_id = #{orderId} AND status = 4
+    </select>
+
+</mapper>

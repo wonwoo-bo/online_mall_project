@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.MerchantSubAccountPermissionMapper">
+
+    <resultMap id="permissionResultMap" type="com.mall.module.product.entity.MerchantSubAccountPermission">
+        <id column="id" property="id"/>
+        <result column="sub_account_id" property="subAccountId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="permission_code" property="permissionCode"/>
+        <result column="permission_name" property="permissionName"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectBySubAccountId" resultMap="permissionResultMap">
+        SELECT * FROM merchant_sub_account_permission WHERE sub_account_id = #{subAccountId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO merchant_sub_account_permission (sub_account_id, merchant_id, permission_code, permission_name, create_time)
+        VALUES (#{subAccountId}, #{merchantId}, #{permissionCode}, #{permissionName}, #{createTime})
+    </insert>
+
+    <delete id="deleteBySubAccountId">
+        DELETE FROM merchant_sub_account_permission WHERE sub_account_id = #{subAccountId}
+    </delete>
+
+    <insert id="batchInsert">
+        INSERT INTO merchant_sub_account_permission (sub_account_id, merchant_id, permission_code, permission_name, create_time)
+        VALUES
+        <foreach collection="permissions" item="item" separator=",">
+            (#{item.subAccountId}, #{item.merchantId}, #{item.permissionCode}, #{item.permissionName}, #{item.createTime})
+        </foreach>
+    </insert>
+
+</mapper>

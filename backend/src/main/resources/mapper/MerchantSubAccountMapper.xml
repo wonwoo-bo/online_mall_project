@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.MerchantSubAccountMapper">
+
+    <resultMap id="subAccountResultMap" type="com.mall.module.product.entity.MerchantSubAccount">
+        <id column="id" property="id"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="real_name" property="realName"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="avatar" property="avatar"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectByMerchantId" resultMap="subAccountResultMap">
+        SELECT * FROM merchant_sub_account
+        WHERE merchant_id = #{merchantId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="subAccountResultMap">
+        SELECT * FROM merchant_sub_account WHERE id = #{id}
+    </select>
+
+    <select id="selectByUsername" resultMap="subAccountResultMap">
+        SELECT * FROM merchant_sub_account WHERE username = #{username}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO merchant_sub_account (merchant_id, username, password, real_name, phone, email, avatar, status, create_time, update_time)
+        VALUES (#{merchantId}, #{username}, #{password}, #{realName}, #{phone}, #{email}, #{avatar}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        UPDATE merchant_sub_account
+        <set>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE merchant_sub_account SET password = #{password}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM merchant_sub_account WHERE id = #{id}
+    </delete>
+
+</mapper>

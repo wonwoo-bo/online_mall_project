@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mall.module.user.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.user.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="salt" property="salt"/>
+        <result column="nickname" property="nickname"/>
+        <result column="phone" property="phone"/>
+        <result column="address" property="address"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (username, password, salt, nickname, phone, address, create_time, update_time)
+        VALUES (#{username}, #{password}, #{salt}, #{nickname}, #{phone}, #{address}, NOW(), NOW())
+    </insert>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT id, username, password, salt, nickname, phone, address, create_time, update_time
+        FROM user
+        WHERE username = #{username}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, username, password, salt, nickname, phone, address, create_time, update_time
+        FROM user
+        WHERE id = #{id}
+    </select>
+
+    <update id="update">
+        UPDATE user
+        <set>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="address != null">address = #{address},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE user
+        SET password = #{password}, salt = #{salt}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

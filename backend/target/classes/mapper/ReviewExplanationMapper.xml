@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReviewExplanationMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.product.entity.ReviewExplanation">
+        <id column="id" property="id"/>
+        <result column="review_id" property="reviewId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="content" property="content"/>
+        <result column="edit_count" property="editCount"/>
+        <result column="last_edit_time" property="lastEditTime"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review_explanation (review_id, merchant_id, content)
+        VALUES (#{reviewId}, #{merchantId}, #{content})
+    </insert>
+
+    <update id="update">
+        UPDATE review_explanation 
+        SET content = #{content}, edit_count = edit_count + 1, last_edit_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectByReviewId" resultMap="BaseResultMap">
+        SELECT * FROM review_explanation WHERE review_id = #{reviewId} LIMIT 1
+    </select>
+
+</mapper>

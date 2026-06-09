@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.StockOperationLogMapper">
+
+    <resultMap id="logResultMap" type="com.mall.module.product.entity.StockOperationLog">
+        <id column="id" property="id"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="product_id" property="productId"/>
+        <result column="order_id" property="orderId"/>
+        <result column="operation_type" property="operationType"/>
+        <result column="quantity" property="quantity"/>
+        <result column="before_stock" property="beforeStock"/>
+        <result column="after_stock" property="afterStock"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator_name" property="operatorName"/>
+        <result column="operation_reason" property="operationReason"/>
+        <result column="remark" property="remark"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stock_operation_log (merchant_id, product_id, order_id, operation_type,
+            quantity, before_stock, after_stock, operator_id, operator_name,
+            operation_reason, remark, create_time)
+        VALUES (#{merchantId}, #{productId}, #{orderId}, #{operationType},
+            #{quantity}, #{beforeStock}, #{afterStock}, #{operatorId}, #{operatorName},
+            #{operationReason}, #{remark}, NOW())
+    </insert>
+
+    <select id="selectByProductId" resultMap="logResultMap">
+        SELECT * FROM stock_operation_log
+        WHERE product_id = #{productId} AND merchant_id = #{merchantId}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByMerchantId" resultMap="logResultMap">
+        SELECT * FROM stock_operation_log
+        WHERE merchant_id = #{merchantId}
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+</mapper>

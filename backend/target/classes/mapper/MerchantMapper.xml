@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.MerchantMapper">
+
+    <resultMap id="merchantResultMap" type="com.mall.module.product.entity.Merchant">
+        <id column="id" property="id"/>
+        <result column="shop_name" property="shopName"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="shop_desc" property="shopDesc"/>
+        <result column="shop_logo" property="shopLogo"/>
+        <result column="avatar" property="avatar"/>
+        <result column="phone" property="phone"/>
+        <result column="intro" property="intro"/>
+        <result column="main_category" property="mainCategory"/>
+        <result column="shop_notice" property="shopNotice"/>
+        <result column="business_status" property="businessStatus"/>
+        <result column="customer_service_phone" property="customerServicePhone"/>
+        <result column="customer_service_online" property="customerServiceOnline"/>
+        <result column="shop_address" property="shopAddress"/>
+        <result column="audit_status" property="auditStatus"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="merchantResultMap">
+        SELECT * FROM merchant WHERE id = #{id}
+    </select>
+
+    <select id="findById" resultMap="merchantResultMap">
+        SELECT * FROM merchant WHERE id = #{id}
+    </select>
+
+    <select id="findByStatus" resultMap="merchantResultMap">
+        SELECT * FROM merchant WHERE status = #{status} ORDER BY create_time DESC
+    </select>
+
+    <select id="findAll" resultMap="merchantResultMap">
+        SELECT * FROM merchant ORDER BY create_time DESC
+    </select>
+
+    <select id="findByUsername" resultMap="merchantResultMap">
+        SELECT * FROM merchant WHERE username = #{username}
+    </select>
+
+    <select id="findByShopName" resultMap="merchantResultMap">
+        SELECT * FROM merchant WHERE shop_name = #{shopName}
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.mall.module.product.entity.Merchant" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO merchant (shop_name, username, password, contact_phone, shop_desc, status, create_time, update_time)
+        VALUES (#{shopName}, #{username}, #{password}, #{contactPhone}, #{shopDesc}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="com.mall.module.product.entity.Merchant">
+        UPDATE merchant
+        <set>
+            <if test="shopName != null">shop_name = #{shopName},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="contactPhone != null">contact_phone = #{contactPhone},</if>
+            <if test="shopDesc != null">shop_desc = #{shopDesc},</if>
+            <if test="shopLogo != null">shop_logo = #{shopLogo},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="intro != null">intro = #{intro},</if>
+            <if test="mainCategory != null">main_category = #{mainCategory},</if>
+            <if test="shopNotice != null">shop_notice = #{shopNotice},</if>
+            <if test="businessStatus != null">business_status = #{businessStatus},</if>
+            <if test="customerServicePhone != null">customer_service_phone = #{customerServicePhone},</if>
+            <if test="customerServiceOnline != null">customer_service_online = #{customerServiceOnline},</if>
+            <if test="shopAddress != null">shop_address = #{shopAddress},</if>
+            <if test="auditStatus != null">audit_status = #{auditStatus},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePassword">
+        UPDATE merchant SET password = #{password}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="Integer">
+        DELETE FROM merchant WHERE id = #{id}
+    </delete>
+
+</mapper>

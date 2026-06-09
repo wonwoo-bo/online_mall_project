@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.product.mapper.ReviewAppendReplyMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.product.entity.ReviewAppendReply">
+        <id column="id" property="id"/>
+        <result column="append_id" property="appendId"/>
+        <result column="review_id" property="reviewId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO review_append_reply (append_id, review_id, merchant_id, content)
+        VALUES (#{appendId}, #{reviewId}, #{merchantId}, #{content})
+    </insert>
+
+    <select id="selectByAppendId" resultMap="BaseResultMap">
+        SELECT * FROM review_append_reply WHERE append_id = #{appendId} LIMIT 1
+    </select>
+
+</mapper>

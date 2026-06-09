@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.user.mapper.MemberTypeMapper">
+
+    <select id="selectAll" resultType="com.mall.module.user.entity.MemberType">
+        SELECT * FROM member_type ORDER BY sort_order ASC
+    </select>
+
+    <select id="selectByCode" resultType="com.mall.module.user.entity.MemberType">
+        SELECT * FROM member_type WHERE level_code = #{levelCode}
+    </select>
+
+    <insert id="insert" parameterType="com.mall.module.user.entity.MemberType">
+        INSERT INTO member_type (level_name, level_code, price, duration_days, 
+                                points_bonus, privileges, description, sort_order)
+        VALUES (#{levelName}, #{levelCode}, #{price}, #{durationDays}, 
+                #{pointsBonus}, #{privileges}, #{description}, #{sortOrder})
+    </insert>
+
+</mapper>

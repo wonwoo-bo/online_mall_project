@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.admin.mapper.SystemConfigMapper">
+
+    <resultMap id="SystemConfigResultMap" type="com.mall.module.admin.entity.SystemConfig">
+        <id property="id" column="id"/>
+        <result property="configKey" column="config_key"/>
+        <result property="configValue" column="config_value"/>
+        <result property="configName" column="config_name"/>
+        <result property="description" column="description"/>
+        <result property="category" column="category"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="findById" resultMap="SystemConfigResultMap">
+        SELECT * FROM system_config WHERE id = #{id}
+    </select>
+
+    <select id="findByConfigKey" resultMap="SystemConfigResultMap">
+        SELECT * FROM system_config WHERE config_key = #{configKey}
+    </select>
+
+    <select id="findByCategory" resultMap="SystemConfigResultMap">
+        SELECT * FROM system_config WHERE category = #{category} ORDER BY sort_order
+    </select>
+
+    <select id="findAll" resultMap="SystemConfigResultMap">
+        SELECT * FROM system_config ORDER BY category, sort_order
+    </select>
+
+    <insert id="insert" parameterType="com.mall.module.admin.entity.SystemConfig">
+        INSERT INTO system_config (config_key, config_value, config_name, description, category, sort_order, create_time, update_time)
+        VALUES (#{configKey}, #{configValue}, #{configName}, #{description}, #{category}, #{sortOrder}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="update" parameterType="com.mall.module.admin.entity.SystemConfig">
+        UPDATE system_config SET
+            config_value = #{configValue},
+            config_name = #{configName},
+            description = #{description},
+            category = #{category},
+            sort_order = #{sortOrder},
+            update_time = #{updateTime}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateByConfigKey">
+        UPDATE system_config SET config_value = #{configValue} WHERE config_key = #{configKey}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM system_config WHERE id = #{id}
+    </delete>
+
+</mapper>

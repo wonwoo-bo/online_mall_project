@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.module.order.mapper.OrderPriceChangeMapper">
+
+    <resultMap id="BaseResultMap" type="com.mall.module.order.entity.OrderPriceChange">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="merchant_id" property="merchantId"/>
+        <result column="old_amount" property="oldAmount"/>
+        <result column="new_amount" property="newAmount"/>
+        <result column="change_reason" property="changeReason"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator_name" property="operatorName"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectByOrderId" resultMap="BaseResultMap">
+        SELECT * FROM order_price_change WHERE order_id = #{orderId} ORDER BY create_time DESC
+    </select>
+
+    <select id="selectByMerchantId" resultMap="BaseResultMap">
+        SELECT * FROM order_price_change WHERE merchant_id = #{merchantId} ORDER BY create_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_price_change (order_id, merchant_id, old_amount, new_amount, change_reason, operator_id, operator_name, create_time)
+        VALUES (#{orderId}, #{merchantId}, #{oldAmount}, #{newAmount}, #{changeReason}, #{operatorId}, #{operatorName}, NOW())
+    </insert>
+
+</mapper>
